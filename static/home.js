@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Create a list of fetch requests
   // Path corrected to match your files: /data/competition-grade10.json
   const requests = grades.map(grade => 
-    fetch(`data/competition-grade${grade}.json`).then(res => {
+    fetch(`./data/competition-grade${grade}.json`).then(res => {
       if (!res.ok) throw new Error(`Could not find Grade ${grade} file`);
       return res.json();
     })

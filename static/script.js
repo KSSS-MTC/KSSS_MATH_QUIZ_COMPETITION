@@ -1,6 +1,7 @@
 let pageName = window.location.pathname.split("/").pop();
 let grade = pageName.replace(".html", "");
-let jsonFile = `data/competition-${grade}.json`;
+// Use ../ to jump out of the 'grades' folder into the root where 'data' lives
+let jsonFile = `../data/competition-${grade}.json`;
 
 fetch(jsonFile)
   .then(res => res.json())

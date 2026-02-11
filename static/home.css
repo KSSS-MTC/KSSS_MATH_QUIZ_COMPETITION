@@ -126,8 +126,34 @@ header h1 {
 }
 
 /* Animations */
-@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes float { from { transform: translateY(0); } to { transform: translateY(-15px); } }
+@keyframes fadeInDown 
+{ 
+  from 
+  { 
+    opacity: 0; 
+    transform: 
+    translateY(-20px); 
+  } 
+  to 
+  { 
+    opacity: 1; 
+    transform: 
+    translateY(0); 
+  } 
+}
+@keyframes float 
+{ 
+  from 
+  { 
+    transform: 
+    translateY(0); 
+  } 
+  to 
+  { 
+    transform: 
+    translateY(-15px); 
+  } 
+}
 
 .math-icon {
   font-size: 50px;
