@@ -2,53 +2,179 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MTC Admin Panel</title>
-    <link rel="stylesheet" href="static/home.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MTC Admin Dashboard</title>
     <style>
-        body { background: #f0f2f5; padding: 20px; font-family: sans-serif; }
-        .admin-box { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        :root {
+            --primary: #0d47a1;
+            --success: #16a34a;
+            --locked-bg: #f1f5f9;
+            --active-border: #3b82f6;
+            --text-main: #1e293b;
+        }
+
+        body { 
+            background: #f8fafc; 
+            padding: 10px; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .admin-container { max-width: 800px; margin: 0 auto; padding-bottom: 100px; }
+
+        .header-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .admin-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
         .hidden { display: none; }
-        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; }
-        button { background: #0d47a1; color: white; font-weight: bold; cursor: pointer; border: none; }
-        .match-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; background: #fafafa; }
-        .status { padding: 10px; border-radius: 5px; margin-top: 10px; text-align: center; display: none; }
+
+        /* LOADING SPINNER */
+        #loading-overlay {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Match Card Styling */
+        .match-card { 
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .match-card.locked { background: var(--locked-bg); opacity: 0.8; border-left: 5px solid #94a3b8; }
+        .match-card.active { border-left: 5px solid var(--active-border); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); }
+
+        .round-divider {
+            background: var(--primary);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin: 25px 0 15px 0;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Inputs */
+        .input-group { margin-bottom: 12px; }
+        label { font-size: 12px; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px; }
+        
+        input, select { 
+            width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; 
+            font-size: 16px; box-sizing: border-box; background: white;
+        }
+
+        .score-row { display: grid; grid-template-columns: 1fr 40px 1fr; align-items: end; gap: 10px; margin-top: 15px; }
+        .vs-label { text-align: center; font-weight: bold; padding-bottom: 12px; }
+
+        .winner-box {
+            margin-top: 15px; padding: 8px; background: #fff7ed; border-radius: 6px;
+            text-align: center; font-weight: bold; color: #c2410c; border: 1px dashed #fb923c;
+        }
+
+        .footer-actions {
+            position: fixed; bottom: 0; left: 0; right: 0; background: white;
+            padding: 15px; border-top: 1px solid #e2e8f0; display: flex; justify-content: center; z-index: 1000;
+        }
+
+        button {
+            background: var(--primary); color: white; border: none; padding: 14px 28px;
+            border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%;
+        }
+
+        .save-btn { background: var(--success); }
+        
+        #status-msg {
+            position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+            padding: 12px 25px; border-radius: 30px; color: white; display: none;
+            z-index: 2000; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
-    <div class="admin-box">
-        <h2>🔧 MTC Competition Admin</h2>
-        
+
+<div id="status-msg"></div>
+
+<div class="admin-container">
+    <div class="header-card">
+        <div class="admin-status" id="admin-display">
+            🛡️ MTC Presidential Dashboard
+        </div>
+
         <div id="login-section">
-            <label>Select Your Role:</label>
-            <select id="admin-name">
-                <option value="">-- Who is editing? --</option>
-                <option value="Coordinator 1">Coordinator 1</option>
-                <option value="Coordinator 2">Coordinator 2</option>
-                <option value="President">MTC President</option>
-                <option value="Secretary">MTC Secretary</option>
-            </select>
-            <input type="password" id="gh-token" placeholder="Paste Fine-Grained Token here">
-            <button onclick="login()">Enter Dashboard</button>
+            <div class="input-group">
+                <label>Admin Access</label>
+                <select id="admin-name">
+                    <option value="">-- Select Your Name --</option>
+                    <option value="YUSUPHA">YUSUPHA (President)</option>
+                    <option value="Coordinator">Coordinator</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>GitHub Token</label>
+                <input type="password" id="gh-token" placeholder="Paste github_pat_... token">
+            </div>
+            <button onclick="login()">Access Control Center</button>
         </div>
 
         <div id="grade-section" class="hidden">
-            <label>Select Grade to Edit:</label>
-            <select id="grade-select">
-                <option value="10">Grade 10</option>
-                <option value="11">Grade 11</option>
-                <option value="12">Grade 12</option>
-            </select>
-            <button onclick="loadMatches()">Load Data</button>
+            <div class="input-group">
+                <label>Competition Category</label>
+                <select id="grade-select">
+                    <option value="10">Grade 10 Brackets</option>
+                    <option value="11">Grade 11 Brackets</option>
+                    <option value="12">Grade 12 Brackets</option>
+                </select>
+            </div>
+            <button onclick="loadMatches()">Fetch & Edit Brackets</button>
         </div>
-
-        <div id="editor-section" class="hidden">
-            <div id="matches-list"></div>
-            <button onclick="saveToGitHub()">💾 Save & Publish to Live Site</button>
-        </div>
-
-        <div id="status-msg" class="status"></div>
     </div>
-    <script src="static/admin.js"></script>
+
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+        <p id="loading-text">Collecting data from GitHub...</p>
+    </div>
+
+    <div id="editor-section" class="hidden">
+        <div id="matches-list"></div>
+        <div class="footer-actions">
+            <button class="save-btn" onclick="saveToGitHub()">💾 Save & Publish Live</button>
+        </div>
+    </div>
+</div>
+
+<script src="static/admin.js"></script>
 </body>
 </html>

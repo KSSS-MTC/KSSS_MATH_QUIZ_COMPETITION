@@ -5,6 +5,7 @@
     {
       "id": 1,
       "name": "Round 1",
+      "status": "active",
       "matches": [
         {
           "id": 1,
