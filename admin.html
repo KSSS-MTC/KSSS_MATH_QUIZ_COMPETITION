@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -16,11 +17,26 @@
             --text-main: #1e293b;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             --bg-gradient-start: #667eea;
             --bg-gradient-end: #764ba2;
             --card-bg: #ffffff;
             --input-bg: #ffffff;
+
+            /* New Semantic Colors */
+            --danger-bg: #fef2f2;
+            --danger-border: #fecaca;
+            --danger-text: #991b1b;
+            --active-bg: #eff6ff;
+            --active-overlay: #dbeafe;
+            --stat-bg: #f8fafc;
+
+            --warning-bg: #fef3c7;
+            --warning-border: #fde68a;
+            --warning-text: #92400e;
+            --info-bg: #fee2e2;
+            --info-border: #fecaca;
+            --info-text: #991b1b;
         }
 
         /* Dark Mode Variables */
@@ -35,12 +51,72 @@
             --text-main: #f1f5f9;
             --text-muted: #94a3b8;
             --border-color: #334155;
-            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
             --bg-gradient-start: #1e293b;
             --bg-gradient-end: #0f172a;
             --card-bg: #1e293b;
             --input-bg: #0f172a;
+
+            /* Dark Mode Semantics */
+            --danger-bg: rgba(239, 68, 68, 0.1);
+            --danger-border: rgba(239, 68, 68, 0.3);
+            --danger-text: #fca5a5;
+            --active-bg: rgba(59, 130, 246, 0.15);
+            --active-overlay: rgba(59, 130, 246, 0.25);
+            --stat-bg: #0f172a;
+
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --warning-border: rgba(245, 158, 11, 0.3);
+            --warning-text: #fbbf24;
+            --info-bg: rgba(239, 68, 68, 0.1);
+            --info-border: rgba(239, 68, 68, 0.3);
+            --info-text: #fca5a5;
         }
+
+        /* Dark Mode UI Overrides */
+        [data-theme="dark"] .winner-box {
+            background: rgba(251, 146, 60, 0.15) !important;
+            color: #fdba74 !important;
+            border-color: rgba(251, 146, 60, 0.3) !important;
+        }
+
+        [data-theme="dark"] .match-card.completed {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, var(--card-bg) 100%) !important;
+        }
+
+        [data-theme="dark"] .match-card.best-loser-match {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, var(--card-bg) 100%) !important;
+        }
+
+        [data-theme="dark"] .match-status-badge.pending {
+            background: rgba(253, 230, 138, 0.1);
+            color: #fcd34d;
+            border-color: rgba(253, 230, 138, 0.2);
+        }
+
+        [data-theme="dark"] .match-status-badge.in-progress {
+            background: rgba(147, 197, 253, 0.1);
+            color: #93c5fd;
+            border-color: rgba(147, 197, 253, 0.2);
+        }
+
+        [data-theme="dark"] .match-status-badge.completed {
+            background: rgba(110, 231, 183, 0.1);
+            color: #6ee7b7;
+            border-color: rgba(110, 231, 183, 0.2);
+        }
+
+        [data-theme="dark"] .match-status-badge.locked {
+            background: rgba(148, 163, 184, 0.1);
+            color: #cbd5e1;
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+
+        [data-theme="dark"] input.invalid,
+        [data-theme="dark"] select.invalid {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
 
         /* Respect system preference */
         @media (prefers-color-scheme: dark) {
@@ -55,30 +131,89 @@
                 --text-main: #f1f5f9;
                 --text-muted: #94a3b8;
                 --border-color: #334155;
-                --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+                --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
                 --bg-gradient-start: #1e293b;
                 --bg-gradient-end: #0f172a;
                 --card-bg: #1e293b;
                 --input-bg: #0f172a;
+
+                --danger-bg: rgba(239, 68, 68, 0.1);
+                --danger-border: rgba(239, 68, 68, 0.3);
+                --danger-text: #fca5a5;
+                --active-bg: rgba(59, 130, 246, 0.15);
+                --active-overlay: rgba(59, 130, 246, 0.25);
+                --stat-bg: #0f172a;
+
+                --warning-bg: rgba(245, 158, 11, 0.1);
+                --warning-border: rgba(245, 158, 11, 0.3);
+                --warning-text: #fbbf24;
+                --info-bg: rgba(239, 68, 68, 0.1);
+                --info-border: rgba(239, 68, 68, 0.3);
+                --info-text: #fca5a5;
+            }
+
+            :root:not([data-theme="light"]) .winner-box {
+                background: rgba(251, 146, 60, 0.15) !important;
+                color: #fdba74 !important;
+                border-color: rgba(251, 146, 60, 0.3) !important;
+            }
+
+            :root:not([data-theme="light"]) .match-card.completed {
+                background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, var(--card-bg) 100%) !important;
+            }
+
+            :root:not([data-theme="light"]) .match-card.best-loser-match {
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, var(--card-bg) 100%) !important;
+            }
+
+            :root:not([data-theme="light"]) .match-status-badge.pending {
+                background: rgba(253, 230, 138, 0.1) !important;
+                color: #fcd34d !important;
+                border-color: rgba(253, 230, 138, 0.2) !important;
+            }
+
+            :root:not([data-theme="light"]) .match-status-badge.in-progress {
+                background: rgba(147, 197, 253, 0.1) !important;
+                color: #93c5fd !important;
+                border-color: rgba(147, 197, 253, 0.2) !important;
+            }
+
+            :root:not([data-theme="light"]) .match-status-badge.completed {
+                background: rgba(110, 231, 183, 0.1) !important;
+                color: #6ee7b7 !important;
+                border-color: rgba(110, 231, 183, 0.2) !important;
+            }
+
+            :root:not([data-theme="light"]) .match-status-badge.locked {
+                background: rgba(148, 163, 184, 0.1) !important;
+                color: #cbd5e1 !important;
+                border-color: rgba(148, 163, 184, 0.2) !important;
+            }
+
+            :root:not([data-theme="light"]) input.invalid,
+            :root:not([data-theme="light"]) select.invalid {
+                background-color: rgba(239, 68, 68, 0.1) !important;
             }
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
-        body { 
+        body {
             background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-            padding: 20px 10px; 
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            padding: 20px 10px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             margin: 0;
             color: var(--text-main);
             min-height: 100vh;
             transition: background 0.3s ease, color 0.3s ease;
         }
 
-        .admin-container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            padding-bottom: 100px; 
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 100px;
         }
 
         /* HEADER SECTION */
@@ -95,13 +230,20 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            flex-wrap: wrap;
+            gap: 15px;
             color: var(--primary);
             font-weight: bold;
             margin-bottom: 20px;
-            font-size: 1.3rem;
             padding-bottom: 15px;
             border-bottom: 2px solid var(--border-color);
+        }
+
+        .status-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
         }
 
         .system-badge {
@@ -152,6 +294,7 @@
             align-items: center;
             gap: 8px;
             min-width: 0;
+            font-size: 1.25rem;
         }
 
         /* Dark Mode Toggle Button */
@@ -180,7 +323,9 @@
             transform: scale(0.95);
         }
 
-        .hidden { display: none !important; }
+        .hidden {
+            display: none !important;
+        }
 
         /* LOADING SPINNER */
         #loading-overlay {
@@ -202,7 +347,15 @@
             margin: 0 auto 20px;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
 
         .loading-text {
             font-size: 16px;
@@ -240,17 +393,38 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 1000;
+            z-index: 2000;
             background: var(--primary);
             color: white;
             border: none;
             border-radius: 50%;
             width: 50px;
             height: 50px;
-            font-size: 24px;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transition: transform 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+            display: none;
+            /* Hidden by default, shown in media query */
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .hamburger-icon {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hamburger-icon span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background-color: currentColor;
+            border-radius: 2px;
+            transition: all 0.2s ease;
         }
 
         .sidebar-toggle:active {
@@ -271,7 +445,8 @@
             align-items: center;
             padding: 12px;
             margin-bottom: 10px;
-            background: #f8fafc;
+            margin-bottom: 10px;
+            background: var(--stat-bg);
             border-radius: 8px;
             font-size: 14px;
         }
@@ -346,7 +521,7 @@
         }
 
         /* Match Card Styling */
-        .match-card { 
+        .match-card {
             background: var(--card-bg);
             border: 2px solid var(--border-color);
             border-radius: 12px;
@@ -356,19 +531,19 @@
         }
 
         .match-card:hover {
-            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
             transform: translateY(-2px);
         }
 
-        .match-card.locked { 
-            background: var(--locked-bg); 
-            opacity: 0.85; 
-            border-left: 5px solid #94a3b8; 
+        .match-card.locked {
+            background: var(--locked-bg);
+            opacity: 0.85;
+            border-left: 5px solid #94a3b8;
         }
 
-        .match-card.active { 
-            border-left: 5px solid var(--active-border); 
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15); 
+        .match-card.active {
+            border-left: 5px solid var(--active-border);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
         }
 
         .match-card.best-loser-match {
@@ -389,9 +564,9 @@
         }
 
         .match-status-badge.pending {
-            background: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fde68a;
+            background: var(--warning-bg);
+            color: var(--warning-text);
+            border: 1px solid var(--warning-border);
         }
 
         .match-status-badge.in-progress {
@@ -407,9 +582,9 @@
         }
 
         .match-status-badge.locked {
-            background: #e2e8f0;
-            color: #475569;
-            border: 1px solid #cbd5e1;
+            background: var(--locked-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
         }
 
         .match-card.completed {
@@ -436,7 +611,7 @@
         }
 
         .round-badge {
-            background: rgba(255,255,255,0.25);
+            background: rgba(255, 255, 255, 0.25);
             padding: 4px 12px;
             border-radius: 15px;
             font-size: 12px;
@@ -444,87 +619,103 @@
         }
 
         /* Inputs */
-        .input-group { margin-bottom: 16px; }
-        
-        label { 
-            font-size: 13px; 
-            font-weight: 600; 
-            color: var(--text-muted); 
-            display: block; 
-            margin-bottom: 6px; 
+        .input-group {
+            margin-bottom: 16px;
         }
-        
-        input, select { 
-            width: 100%; 
-            padding: 12px 14px; 
-            border: 2px solid var(--border-color); 
-            border-radius: 8px; 
-            font-size: 15px; 
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
             background: var(--input-bg);
             color: var(--text-main);
             transition: border-color 0.2s ease;
         }
 
-        input:focus, select:focus {
+        input:focus,
+        select:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.1);
         }
 
         /* Input validation states */
-        input.invalid, select.invalid {
+        input.invalid,
+        select.invalid {
             border-color: var(--danger);
             background-color: #fef2f2;
             animation: shake 0.3s ease;
         }
 
-        input.invalid:focus, select.invalid:focus {
+        input.invalid:focus,
+        select.invalid:focus {
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-8px);
+            }
+
+            75% {
+                transform: translateX(8px);
+            }
         }
 
-        .score-row { 
-            display: grid; 
-            grid-template-columns: 1fr 50px 1fr; 
-            align-items: end; 
-            gap: 12px; 
-            margin-top: 15px; 
+        .score-row {
+            display: grid;
+            grid-template-columns: 1fr 50px 1fr;
+            align-items: end;
+            gap: 12px;
+            margin-top: 15px;
         }
-        
-        .vs-label { 
-            text-align: center; 
-            font-weight: bold; 
-            padding-bottom: 12px; 
+
+        .vs-label {
+            text-align: center;
+            font-weight: bold;
+            padding-bottom: 12px;
             color: var(--primary);
             font-size: 14px;
         }
 
         .winner-box {
-            margin-top: 15px; 
-            padding: 10px; 
-            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); 
+            margin-top: 15px;
+            padding: 10px;
+            background: var(--warning-bg);
             border-radius: 8px;
-            text-align: center; 
-            font-weight: bold; 
-            color: #c2410c; 
-            border: 2px dashed #fb923c;
+            text-align: center;
+            font-weight: bold;
+            color: var(--warning-text);
+            border: 2px dashed var(--warning-border);
         }
 
         /* BUTTONS */
         button {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white; 
-            border: none; 
+            color: white;
+            border: none;
             padding: 14px 28px;
-            border-radius: 10px; 
-            font-weight: bold; 
-            font-size: 16px; 
-            cursor: pointer; 
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
             width: 100%;
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px rgba(13, 71, 161, 0.2);
@@ -546,7 +737,7 @@
             box-shadow: none;
         }
 
-        .save-btn { 
+        .save-btn {
             background: linear-gradient(135deg, var(--success) 0%, #22c55e 100%);
             box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2);
         }
@@ -557,61 +748,73 @@
 
         /* FOOTER */
         .footer-actions {
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            right: 0; 
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background: var(--card-bg);
-            padding: 15px 20px; 
-            border-top: 2px solid var(--border-color); 
-            display: flex; 
-            justify-content: center; 
+            padding: 15px 20px;
+            border-top: 2px solid var(--border-color);
+            display: flex;
+            justify-content: center;
             z-index: 1000;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08);
         }
 
         .footer-actions button {
             max-width: 500px;
         }
-        
+
         /* STATUS MESSAGE */
         #status-msg {
-            position: fixed; 
-            top: 20px; 
-            left: 50%; 
+            position: fixed;
+            top: 20px;
+            left: 50%;
             transform: translateX(-50%);
-            padding: 14px 30px; 
-            border-radius: 30px; 
-            color: white; 
+            padding: 14px 30px;
+            border-radius: 30px;
+            color: white;
             display: none;
-            z-index: 2000; 
-            font-weight: bold; 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            z-index: 2000;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
             font-size: 15px;
             animation: slideDown 0.3s ease;
         }
 
         @keyframes slideDown {
-            from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
-            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+            from {
+                transform: translateX(-50%) translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
         }
 
         /* RESPONSIVE */
         @media (max-width: 768px) {
-            body { padding: 10px; }
-            .admin-container { padding-bottom: 80px; }
+            body {
+                padding: 10px;
+            }
+
+            .admin-container {
+                padding-bottom: 80px;
+            }
 
             .brand-logo,
             .brand-fallback {
                 width: 38px;
                 height: 38px;
             }
-            
+
             /* Collapsible sidebar on mobile */
             .sidebar-toggle {
                 display: block;
             }
-            
+
             .sidebar {
                 position: fixed;
                 top: 0;
@@ -625,11 +828,11 @@
                 transform: translateX(-100%);
                 overflow-y: auto;
             }
-            
+
             .sidebar.open {
                 transform: translateX(0);
             }
-            
+
             .sidebar-overlay {
                 display: none;
                 position: fixed;
@@ -637,24 +840,71 @@
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(0,0,0,0.5);
+                background: rgba(0, 0, 0, 0.5);
                 z-index: 1999;
             }
-            
+
             .sidebar-overlay.open {
                 display: block;
             }
-            
-            .content-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .score-row { grid-template-columns: 1fr 40px 1fr; gap: 8px; }
-            
-            /* Mobile dropdown fixes */
-            input, select {
-                font-size: 16px !important; /* Prevents zoom on iOS */
-                padding: 14px;
-                min-height: 44px; /* Apple touch target guideline */
+
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
             }
-            
+
+            .score-row {
+                grid-template-columns: 1fr 40px 1fr;
+                gap: 8px;
+            }
+
+            /* Header Optimization for Mobile */
+            .admin-status {
+                justify-content: center;
+                text-align: center;
+                gap: 12px;
+            }
+
+            .brand-wrap {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .brand-title {
+                font-size: 1.1rem;
+                justify-content: center;
+                word-break: break-word;
+            }
+
+            .status-actions {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .sidebar-toggle {
+                display: flex;
+                top: 15px;
+                right: 15px;
+                width: 44px;
+                height: 44px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            }
+
+            .hamburger-icon span {
+                width: 18px;
+            }
+
+            /* Mobile dropdown fixes */
+            input,
+            select {
+                font-size: 16px !important;
+                /* Prevents zoom on iOS */
+                padding: 14px;
+                min-height: 44px;
+                /* Apple touch target guideline */
+            }
+
             button {
                 min-height: 44px;
                 padding: 12px 20px;
@@ -668,7 +918,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 2999;
             display: flex;
             align-items: center;
@@ -680,7 +930,7 @@
             position: relative;
             background: var(--card-bg);
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             z-index: 3000;
             max-width: 600px;
             width: 100%;
@@ -753,7 +1003,8 @@
             }
 
             .modal-select {
-                font-size: 16px !important; /* Prevents iOS zoom */
+                font-size: 16px !important;
+                /* Prevents iOS zoom */
                 padding: 14px;
                 min-height: 44px;
             }
@@ -788,253 +1039,346 @@
             border-top-color: transparent;
             animation: spin 0.8s linear infinite;
         }
+
+        /* PULSE ANIMATION FOR UNLOCKED TEAMS */
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+                transform: scale(1);
+            }
+
+            50% {
+                box-shadow: 0 4px 16px rgba(59, 130, 246, 0.6);
+                transform: scale(1.02);
+            }
+        }
+
+        /* MODAL ANIMATIONS */
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        @keyframes backdropFadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
+
 <body>
 
-<div id="status-msg" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="status-msg" role="status" aria-live="polite" aria-atomic="true"></div>
 
-<div class="admin-container">
-    <!-- HEADER SECTION -->
-    <div class="header-card">
-        <div class="admin-status">
-            <div class="brand-wrap">
-                <img src="static/images/logo.png" alt="KSSS Logo" class="brand-logo" onerror="console.warn('⚠️ Logo missing: Place logo.png in static/images/ folder'); this.style.display='none'; const fallback=this.nextElementSibling; if(fallback) fallback.style.display='flex';">
-                <div class="brand-fallback">KSSS</div>
-                <div class="brand-title">
-                    <span style="font-size: 28px;">🎯</span>
-                    <span>KSSS Tournament Control Center</span>
+    <div class="admin-container">
+        <!-- HEADER SECTION -->
+        <div class="header-card">
+            <div class="admin-status">
+                <div class="brand-wrap">
+                    <img src="static/images/Kotusss_logo.png" alt="KSSS Logo" class="brand-logo"
+                        onerror="console.warn('⚠️ Logo missing: Place Kotusss_logo.png in static/images/ folder'); this.style.display='none'; const fallback=this.nextElementSibling; if(fallback) fallback.style.display='flex';">
+                    <div class="brand-fallback">KSSS</div>
+                    <div class="brand-title">
+                        <span style="font-size: 28px;">🎯</span>
+                        <span>KSSS Tournament Control Center</span>
+                    </div>
+                </div>
+                <div class="status-actions">
+                    <span id="role-badge" class="system-badge"
+                        style="background: #64748b; color: #fff; display: none;">Admin</span>
+                    <button onclick="showStructuralActionLog()"
+                        style="background:#0d47a1;color:#fff;padding:7px 14px;border-radius:16px;font-size:12px;border:none;cursor:pointer;"
+                        title="View structural action log" aria-label="View structural action log">📝 Log</button>
+                    <button class="theme-toggle" onclick="toggleDarkMode()" title="Toggle between dark and light theme"
+                        aria-label="Toggle between dark and light theme">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+                    <div class="system-badge">v2.1.0</div>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <button class="theme-toggle" onclick="toggleDarkMode()" title="Toggle between dark and light theme" aria-label="Toggle between dark and light theme">
-                    <span id="theme-icon">🌙</span>
-                </button>
-                <div class="system-badge">v2.1.0</div>
+            <div id="admin-display" style="color: var(--text-muted); font-size: 14px; font-weight: normal;">
+                Please authenticate to access tournament management
             </div>
-        </div>
-        <div id="admin-display" style="color: var(--text-muted); font-size: 14px; font-weight: normal;">
-            Please authenticate to access tournament management
-        </div>
 
-        <!-- LOGIN SECTION -->
-        <div id="login-section">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
-                <div class="input-group">
-                    <label for="admin-name">🔐 Admin Access</label>
-                    <select id="admin-name" aria-label="Select your admin name">
-                        <option value="">-- Select Your Name --</option>
-                        <option value="Coordinator">Coordinator</option>
-                        <option value="Pico Jr">Pico Jr</option>
-                        <option value="Y-JAMMEH">Y-JAMMEH"</option>
+            <!-- LOGIN SECTION -->
+            <div id="login-section">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                    <div class="input-group">
+                        <label for="admin-name">🔐 Admin Access</label>
+                        <select id="admin-name" aria-label="Select your admin name">
+                            <option value="">-- Select Your Name --</option>
+                            <option value="Coordinator">Coordinator</option>
+                            <option value="Pico Jr">Pico Jr</option>
+                            <option value="Y-JAMMEH">Y-JAMMEH"</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="gh-token">🔑 GitHub Token</label>
+                        <input type="password" id="gh-token" placeholder="Paste github_pat_... token"
+                            aria-label="Enter GitHub personal access token">
+                    </div>
+                </div>
+                <button onclick="login()" style="margin-top: 10px;" aria-label="Login to access admin control center">🚀
+                    Access Control Center</button>
+            </div>
+
+            <!-- GRADE SELECTION -->
+            <div id="grade-section" class="hidden">
+                <div class="input-group" style="margin-top: 20px;">
+                    <label for="grade-select">📊 Competition Category</label>
+                    <select id="grade-select" aria-label="Select grade level for tournament">
+                        <option value="10">Grade 10 Brackets</option>
+                        <option value="11">Grade 11 Brackets</option>
+                        <option value="12">Grade 12 Brackets</option>
                     </select>
                 </div>
-                <div class="input-group">
-                    <label for="gh-token">🔑 GitHub Token</label>
-                    <input type="password" id="gh-token" placeholder="Paste github_pat_... token" aria-label="Enter GitHub personal access token">
-                </div>
+                <button onclick="loadMatches()" title="Loads from cache if available (< 5 min old)"
+                    aria-label="Fetch and edit tournament brackets">📥 Fetch & Edit Brackets</button>
             </div>
-            <button onclick="login()" style="margin-top: 10px;" aria-label="Login to access admin control center">🚀 Access Control Center</button>
         </div>
 
-        <!-- GRADE SELECTION -->
-        <div id="grade-section" class="hidden">
-            <div class="input-group" style="margin-top: 20px;">
-                <label for="grade-select">📊 Competition Category</label>
-                <select id="grade-select" aria-label="Select grade level for tournament">
-                    <option value="10">Grade 10 Brackets</option>
-                    <option value="11">Grade 11 Brackets</option>
-                    <option value="12">Grade 12 Brackets</option>
-                </select>
+        <!-- LOADING OVERLAY -->
+        <div id="loading-overlay" class="hidden">
+            <div class="spinner"></div>
+            <p class="loading-text">Connecting to GitHub Repository...</p>
+        </div>
+
+        <!-- DASHBOARD LAYOUT -->
+        <div id="editor-section" class="hidden">
+            <!-- Mobile Sidebar Toggle Button -->
+            <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+                <div class="hamburger-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+
+            <!-- Sidebar Overlay for Mobile -->
+            <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+            <div class="dashboard-grid">
+                <!-- SIDEBAR - Tournament Overview -->
+                <aside class="sidebar" id="tournament-sidebar" role="complementary"
+                    aria-label="Tournament statistics and overview">
+                    <h3>📊 Tournament Overview</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Grade Level</span>
+                        <span class="stat-value" id="sidebar-grade" aria-live="polite">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Rounds</span>
+                        <span class="stat-value" id="sidebar-rounds" aria-live="polite">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Active Matches</span>
+                        <span class="stat-value" id="sidebar-matches" aria-live="polite">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Completed</span>
+                        <span class="stat-value" id="sidebar-completed" aria-live="polite">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Qualified Teams</span>
+                        <span class="stat-value" id="sidebar-qualified" aria-live="polite">--</span>
+                    </div>
+
+                    <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid var(--border-color);">
+                        <h3 style="font-size: 15px; margin-bottom: 12px;">🎮 Quick Actions</h3>
+                        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+                            <p style="margin: 8px 0;">• Complete all matches in current round</p>
+                            <p style="margin: 8px 0;">• Create Best Loser playoff (if odd winners)</p>
+                            <p style="margin: 8px 0;">• Generate next round with manual pairing</p>
+                            <p style="margin: 8px 0;">• Save changes to GitHub</p>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- MAIN CONTENT -->
+                <main class="main-content">
+                    <div class="content-header">
+                        <h2 class="content-title">📋 Match Management</h2>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button id="undo-btn" onclick="undoChange()" disabled
+                                style="width: auto; padding: 10px 20px; font-size: 14px;"
+                                title="Undo last change (Ctrl+Z)" aria-label="Undo last change">
+                                ↩️ Undo
+                            </button>
+                            <button id="redo-btn" onclick="redoChange()" disabled
+                                style="width: auto; padding: 10px 20px; font-size: 14px;"
+                                title="Redo last undone change (Ctrl+Y)" aria-label="Redo last undone change">
+                                ↪️ Redo
+                            </button>
+                            <button onclick="exportToCSV()"
+                                style="width: auto; padding: 10px 20px; font-size: 14px; background: #16a34a;"
+                                title="Export tournament data as CSV file (Ctrl+E)"
+                                aria-label="Export tournament data as CSV">
+                                📊 Export CSV
+                            </button>
+                            <button onclick="exportToPDF()"
+                                style="width: auto; padding: 10px 20px; font-size: 14px; background: #dc2626;"
+                                title="Generate PDF report of tournament (Ctrl+P)" aria-label="Generate PDF report">
+                                📄 Export PDF
+                            </button>
+                            <button onclick="loadMatches(true)"
+                                style="width: auto; padding: 10px 20px; font-size: 14px;"
+                                title="Force refresh from GitHub (bypasses cache)"
+                                aria-label="Force refresh data from GitHub">
+                                🔄 Force Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SEARCH & FILTER CONTROLS -->
+                    <div class="search-filter-bar" role="search" aria-label="Match search and filter controls">
+                        <div class="search-box">
+                            <input type="text" id="match-search" placeholder="🔍 Search by team name..."
+                                oninput="filterMatches()" style="margin: 0; font-size: 14px; padding: 10px 14px;"
+                                aria-label="Search matches by team name" />
+                        </div>
+                        <div class="filter-controls">
+                            <select id="status-filter" onchange="filterMatches()"
+                                style="margin: 0; font-size: 14px; padding: 10px 14px;"
+                                aria-label="Filter matches by status">
+                                <option value="all">All Statuses</option>
+                                <option value="pending">⏳ Pending</option>
+                                <option value="in-progress">🔵 In Progress</option>
+                                <option value="completed">✅ Completed</option>
+                                <option value="locked">🔒 Locked</option>
+                            </select>
+                            <select id="round-filter" onchange="filterMatches()"
+                                style="margin: 0; font-size: 14px; padding: 10px 14px;"
+                                aria-label="Filter matches by round">
+                                <option value="all">All Rounds</option>
+                            </select>
+                            <button onclick="clearFilters()"
+                                style="width: auto; padding: 10px 20px; font-size: 14px; background: #6b7280;"
+                                aria-label="Clear all filters">
+                                ✖ Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="matches-list" role="main" aria-label="Tournament matches list"></div>
+
+                    <!-- Pagination Controls -->
+                    <div id="pagination-controls"
+                        style="display: none; justify-content: center; align-items: center; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+                    </div>
+                </main>
             </div>
-            <button onclick="loadMatches()" title="Loads from cache if available (< 5 min old)" aria-label="Fetch and edit tournament brackets">📥 Fetch & Edit Brackets</button>
+
+            <!-- FOOTER SAVE BUTTON -->
+            <div class="footer-actions">
+                <button class="save-btn" onclick="saveToGitHub()" aria-label="Save all changes and publish to GitHub">💾
+                    Save & Publish to GitHub</button>
+            </div>
         </div>
     </div>
 
-    <!-- LOADING OVERLAY -->
-    <div id="loading-overlay" class="hidden">
-        <div class="spinner"></div>
-        <p class="loading-text">Connecting to GitHub Repository...</p>
-    </div>
+    <script>
+        // Dark Mode Toggle
+        // Show admin role badge after login
+        function showRoleBadge() {
+            const badge = document.getElementById('role-badge');
+            if (!badge) return;
+            const role = sessionStorage.getItem('currentAdminRole');
+            if (role === 'absolute') {
+                badge.textContent = 'Absolute Admin';
+                badge.style.background = '#0d47a1';
+                badge.style.display = 'inline-block';
+            } else if (role === 'limited') {
+                badge.textContent = 'Limited Admin';
+                badge.style.background = '#64748b';
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
 
-    <!-- DASHBOARD LAYOUT -->
-    <div id="editor-section" class="hidden">
-        <!-- Mobile Sidebar Toggle Button -->
-        <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar">☰</button>
-        
-        <!-- Sidebar Overlay for Mobile -->
-        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
-        
-        <div class="dashboard-grid">
-            <!-- SIDEBAR - Tournament Overview -->
-            <aside class="sidebar" id="tournament-sidebar" role="complementary" aria-label="Tournament statistics and overview">
-                <h3>📊 Tournament Overview</h3>
-                <div class="stat-item">
-                    <span class="stat-label">Grade Level</span>
-                    <span class="stat-value" id="sidebar-grade" aria-live="polite">--</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Total Rounds</span>
-                    <span class="stat-value" id="sidebar-rounds" aria-live="polite">--</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Active Matches</span>
-                    <span class="stat-value" id="sidebar-matches" aria-live="polite">--</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Completed</span>
-                    <span class="stat-value" id="sidebar-completed" aria-live="polite">--</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Qualified Teams</span>
-                    <span class="stat-value" id="sidebar-qualified" aria-live="polite">--</span>
-                </div>
-                
-                <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid var(--border-color);">
-                    <h3 style="font-size: 15px; margin-bottom: 12px;">🎮 Quick Actions</h3>
-                    <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
-                        <p style="margin: 8px 0;">• Complete all matches in current round</p>
-                        <p style="margin: 8px 0;">• Create Best Loser playoff (if odd winners)</p>
-                        <p style="margin: 8px 0;">• Generate next round with manual pairing</p>
-                        <p style="margin: 8px 0;">• Save changes to GitHub</p>
-                    </div>
-                </div>
-            </aside>
+        // Call showRoleBadge after login and on page load if session exists
+        document.addEventListener('DOMContentLoaded', showRoleBadge);
+        function toggleDarkMode() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-            <!-- MAIN CONTENT -->
-            <main class="main-content">
-                <div class="content-header">
-                    <h2 class="content-title">📋 Match Management</h2>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button id="undo-btn" onclick="undoChange()" disabled style="width: auto; padding: 10px 20px; font-size: 14px;" title="Undo last change (Ctrl+Z)" aria-label="Undo last change">
-                            ↩️ Undo
-                        </button>
-                        <button id="redo-btn" onclick="redoChange()" disabled style="width: auto; padding: 10px 20px; font-size: 14px;" title="Redo last undone change (Ctrl+Y)" aria-label="Redo last undone change">
-                            ↪️ Redo
-                        </button>
-                        <button onclick="exportToCSV()" style="width: auto; padding: 10px 20px; font-size: 14px; background: #16a34a;" title="Export tournament data as CSV file (Ctrl+E)" aria-label="Export tournament data as CSV">
-                            📊 Export CSV
-                        </button>
-                        <button onclick="exportToPDF()" style="width: auto; padding: 10px 20px; font-size: 14px; background: #dc2626;" title="Generate PDF report of tournament (Ctrl+P)" aria-label="Generate PDF report">
-                            📄 Export PDF
-                        </button>
-                        <button onclick="loadMatches(true)" style="width: auto; padding: 10px 20px; font-size: 14px;" title="Force refresh from GitHub (bypasses cache)" aria-label="Force refresh data from GitHub">
-                            🔄 Force Refresh
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- SEARCH & FILTER CONTROLS -->
-                <div class="search-filter-bar" role="search" aria-label="Match search and filter controls">
-                    <div class="search-box">
-                        <input 
-                            type="text" 
-                            id="match-search" 
-                            placeholder="🔍 Search by team name..." 
-                            oninput="filterMatches()"
-                            style="margin: 0; font-size: 14px; padding: 10px 14px;"
-                            aria-label="Search matches by team name"
-                        />
-                    </div>
-                    <div class="filter-controls">
-                        <select id="status-filter" onchange="filterMatches()" style="margin: 0; font-size: 14px; padding: 10px 14px;" aria-label="Filter matches by status">
-                            <option value="all">All Statuses</option>
-                            <option value="pending">⏳ Pending</option>
-                            <option value="in-progress">🔵 In Progress</option>
-                            <option value="completed">✅ Completed</option>
-                            <option value="locked">🔒 Locked</option>
-                        </select>
-                        <select id="round-filter" onchange="filterMatches()" style="margin: 0; font-size: 14px; padding: 10px 14px;" aria-label="Filter matches by round">
-                            <option value="all">All Rounds</option>
-                        </select>
-                        <button onclick="clearFilters()" style="width: auto; padding: 10px 20px; font-size: 14px; background: #6b7280;" aria-label="Clear all filters">
-                            ✖ Clear
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="matches-list" role="main" aria-label="Tournament matches list"></div>
-                
-                <!-- Pagination Controls -->
-                <div id="pagination-controls" style="display: none; justify-content: center; align-items: center; gap: 12px; margin-top: 24px; flex-wrap: wrap;"></div>
-            </main>
-        </div>
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
 
-        <!-- FOOTER SAVE BUTTON -->
-        <div class="footer-actions">
-            <button class="save-btn" onclick="saveToGitHub()" aria-label="Save all changes and publish to GitHub">💾 Save & Publish to GitHub</button>
-        </div>
-    </div>
-</div>
+            // Update icon
+            const themeIcon = document.getElementById('theme-icon');
+            if (themeIcon) {
+                themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            }
+        }
 
-<script>
-// Dark Mode Toggle
-function toggleDarkMode() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    
-    // Update icon
-    const themeIcon = document.getElementById('theme-icon');
-    if (themeIcon) {
-        themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
-    }
-}
+        // Initialize theme on page load
+        function initTheme() {
+            // Check localStorage first
+            const savedTheme = localStorage.getItem('theme');
 
-// Initialize theme on page load
-function initTheme() {
-    // Check localStorage first
-    const savedTheme = localStorage.getItem('theme');
-    
-    // If no saved theme, check system preference
-    let theme = savedTheme;
-    if (!theme) {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        theme = prefersDark ? 'dark' : 'light';
-    }
-    
-    // Apply theme
-    document.documentElement.setAttribute('data-theme', theme);
-    
-    // Update icon
-    const themeIcon = document.getElementById('theme-icon');
-    if (themeIcon) {
-        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
-    }
-}
+            // If no saved theme, check system preference
+            let theme = savedTheme;
+            if (!theme) {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                theme = prefersDark ? 'dark' : 'light';
+            }
 
-// Initialize theme immediately (before DOMContentLoaded to prevent flash)
-initTheme();
+            // Apply theme
+            document.documentElement.setAttribute('data-theme', theme);
 
-// Mobile sidebar toggle
-function toggleSidebar() {
-    const sidebar = document.getElementById('tournament-sidebar');
-    const overlay = document.querySelector('.sidebar-overlay');
-    
-    if (sidebar && overlay) {
-        sidebar.classList.toggle('open');
-        overlay.classList.toggle('open');
-    }
-}
+            // Update icon
+            const themeIcon = document.getElementById('theme-icon');
+            if (themeIcon) {
+                themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            }
+        }
 
-// Close sidebar when clicking on main content (mobile only)
-document.addEventListener('DOMContentLoaded', () => {
-    const mainContent = document.querySelector('.main-content');
-    if (mainContent && window.innerWidth <= 768) {
-        mainContent.addEventListener('click', () => {
+        // Initialize theme immediately (before DOMContentLoaded to prevent flash)
+        initTheme();
+
+        // Mobile sidebar toggle
+        function toggleSidebar() {
             const sidebar = document.getElementById('tournament-sidebar');
             const overlay = document.querySelector('.sidebar-overlay');
-            if (sidebar && overlay && sidebar.classList.contains('open')) {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('open');
+
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('open');
+            }
+        }
+
+        // Close sidebar when clicking on main content (mobile only)
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent && window.innerWidth <= 768) {
+                mainContent.addEventListener('click', () => {
+                    const sidebar = document.getElementById('tournament-sidebar');
+                    const overlay = document.querySelector('.sidebar-overlay');
+                    if (sidebar && overlay && sidebar.classList.contains('open')) {
+                        sidebar.classList.remove('open');
+                        overlay.classList.remove('open');
+                    }
+                });
             }
         });
-    }
-});
-</script>
+    </script>
 
-<script src="static/admin.js?v=2.1.0"></script>
+    <script src="static/admin.js?v=2.1.0"></script>
 </body>
+
 </html>

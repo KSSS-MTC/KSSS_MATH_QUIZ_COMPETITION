@@ -6,7 +6,7 @@ const gradeFromFile = (pageName.match(/grade(\d+)/i) || [])[1];
 const grade = gradeFromQuery || gradeFromFile || "10";
 const DATA_VERSION = "2.1.0";
 const jsonFile = `../data/competition-grade${grade}.json?v=${encodeURIComponent(DATA_VERSION)}`;
-const THEME_STORAGE_KEY = "ksss-bracket-theme";
+const THEME_STORAGE_KEY = "ksss-user-theme";
 
 // Initialize theme before content loads
 initializeTheme();
@@ -61,12 +61,9 @@ fetch(jsonFile)
 
           const isBestLoser = match?.type === "best_loser";
           if (isBestLoser) {
-            matchDiv.style.background = "#fff9e6";
-            matchDiv.style.borderLeft = "4px solid #f59e0b";
-            matchDiv.style.position = "relative";
-
+            matchDiv.classList.add("best-loser-match");
             const badge = document.createElement("div");
-            badge.style.cssText = "position: absolute; top: 8px; right: 8px; background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;";
+            badge.className = "best-loser-badge";
             badge.textContent = "🏆 BEST LOSER PLAYOFF";
             matchDiv.appendChild(badge);
           }
@@ -130,8 +127,8 @@ function renderBracketError(message) {
   const bracket = document.getElementById("bracket");
   if (!bracket) return;
   bracket.innerHTML = `
-    <div style="text-align: center; padding: 50px; color: #ef4444;">
-      <h2>⚠️ Error Loading Bracket</h2>
+    <div style="text-align: center; padding: 50px; color: var(--danger, #ef4444);">
+      <h2 style="color: var(--danger, #ef4444);">⚠️ Error Loading Bracket</h2>
       <p>${message}</p>
       <p>Please check if Grade ${grade} data exists.</p>
     </div>
@@ -159,7 +156,7 @@ function createTeam(team) {
 
 // Helper to check if a match has pending schedule
 function isMatchPending(match) {
-    return isPendingSchedule(match?.schedule);
+  return isPendingSchedule(match?.schedule);
 }
 
 // Check if schedule contains pending or TBD values

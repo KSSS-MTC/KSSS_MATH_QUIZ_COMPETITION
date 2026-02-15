@@ -1,19 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KSSS Math Quiz</title>
     <link rel="stylesheet" href="static/home.css">
 </head>
+
 <body>
 
     <header class="school-header">
         <div class="header-content">
-            <div class="logo-container">
-                <img src="static/images/logo.png" alt="KSSS Logo" class="school-logo" onerror="console.warn('⚠️ Logo missing: Place logo.png in static/images/ folder'); this.parentElement.className='logo-placeholder';">
+            <div class="brand-wrap">
+                <div class="logo-container">
+                    <img src="static/images/Kotusss_logo.png" alt="KSSS Logo" class="school-logo"
+                        onerror="console.warn('⚠️ Logo missing: Place Kotusss_logo.png in static/images/ folder'); this.parentElement.className='logo-placeholder';">
+                </div>
+                <p class="school-name">KOTU SENIOR SECONDARY SCHOOL</p>
             </div>
-            <p class="school-name">KOTU SENIOR SECONDARY SCHOOL</p>
+            <button id="theme-toggle" class="theme-toggle"
+                style="background:none; border:none; cursor:pointer; font-size:24px; padding:8px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
+                title="Toggle between dark and light theme" aria-label="Toggle between dark and light theme">
+                <span id="theme-icon">🌙</span>
+            </button>
         </div>
     </header>
 
@@ -38,9 +48,12 @@
                 <ul class="rules-list">
                     <li>Each class is invited to send <strong>ONLY TWO</strong> participants.</li>
                     <li>It is mandatory for all students to wear <strong>school uniforms</strong>.</li>
-                    <li><strong>No communication</strong> is allowed between participants and the audience. Failure to comply results in a <strong>5-point deduction</strong>.</li>
-                    <li>Participants are permitted to use <strong>ONLY simple calculators</strong> (Strictly NO FX/Scientific calculators).</li>
-                    <li>Participants must arrive at the School Hall by <strong>11:18 AM</strong> for a prompt 11:20 AM start.</li>
+                    <li><strong>No communication</strong> is allowed between participants and the audience. Failure to
+                        comply results in a <strong>5-point deduction</strong>.</li>
+                    <li>Participants are permitted to use <strong>ONLY simple calculators</strong> (Strictly NO
+                        FX/Scientific calculators).</li>
+                    <li>Participants must arrive at the School Hall by <strong>11:18 AM</strong> for a prompt 11:20 AM
+                        start.</li>
                 </ul>
             </div>
 
@@ -75,4 +88,5 @@
 
     <script src="static/home.js"></script>
 </body>
+
 </html>

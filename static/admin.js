@@ -1,3 +1,323 @@
+// Unlock team for switching
+function unlockTeam(rIdx, mIdx, side) {
+    if (!switchModeActive || switchModeRoundIdx !== rIdx) return;
+    // Only allow up to 2 unlocked teams
+    if (unlockedTeams.length === 2) {
+        alert("You can only unlock two teams at a time. Re-lock one to select another.");
+        return;
+    }
+    // Prevent duplicate unlock
+    if (unlockedTeams.some(t => t.rIdx === rIdx && t.mIdx === mIdx && t.side === side)) return;
+    unlockedTeams.push({ rIdx, mIdx, side });
+    renderForm();
+    // If two teams unlocked, show swap modal
+    if (unlockedTeams.length === 2) {
+        showSwapModal();
+    }
+}
+
+// Re-lock (deselect) a team in switch mode
+function relockTeam(rIdx, mIdx, side) {
+    unlockedTeams = unlockedTeams.filter(t => !(t.rIdx === rIdx && t.mIdx === mIdx && t.side === side));
+    renderForm();
+}
+
+
+// Show swap confirmation modal
+function showSwapModal() {
+    const [t1, t2] = unlockedTeams;
+    // Safety: must be in same round, no scores, not completed
+    if (t1.rIdx !== t2.rIdx) {
+        alert("⚠️ Teams must be in the same round to swap.");
+        unlockedTeams = [];
+        renderForm();
+        return;
+    }
+    const round = currentData.rounds[t1.rIdx];
+    const m1 = round.matches[t1.mIdx];
+    const m2 = round.matches[t2.mIdx];
+    const teamA = t1.side === 'A' ? m1.teamA : m1.teamB;
+    const teamB = t2.side === 'A' ? m2.teamA : m2.teamB;
+    if (teamA.points != null || teamB.points != null || m1.winner || m2.winner) {
+        alert("❌ Cannot swap teams with recorded scores or completed matches.");
+        unlockedTeams = [];
+        renderForm();
+        return;
+    }
+    // Modal UI with improved styling
+    const html = `
+        <div style='text-align:center;'>
+            <div style='font-size:48px;margin-bottom:16px;'>🔄</div>
+            <div style='font-size:20px;font-weight:bold;margin-bottom:12px;color:var(--text-main);'>Confirm Team Swap</div>
+            <div style='font-size:15px;margin-bottom:20px;color:var(--text-muted);line-height:1.5;'>
+                You are about to swap:<br><br>
+                <span style='display:inline-block;background:var(--active-bg);color:var(--primary);padding:8px 16px;border-radius:8px;font-weight:bold;margin:4px;'>
+                    ${teamA.name}
+                </span>
+                <br>with<br>
+                <span style='display:inline-block;background:var(--active-bg);color:var(--primary);padding:8px 16px;border-radius:8px;font-weight:bold;margin:4px;'>
+                    ${teamB.name}
+                </span>
+            </div>
+            <div style='font-size:13px;color:var(--warning-text);margin-bottom:24px;padding:12px;background:var(--warning-bg);border-radius:8px;border:1px solid var(--warning-border);'>
+                ⚠️ This action will immediately save to GitHub
+            </div>
+            <div style='display:flex;gap:12px;justify-content:center;'>
+                <button onclick='confirmTeamSwap()' style='flex:1;background:linear-gradient(135deg, var(--success) 0%, #15803d 100%);color:#fff;padding:12px 24px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;font-size:15px;box-shadow:0 4px 12px rgba(22,163,74,0.3);transition:all 0.2s;' onmouseover='this.style.transform="translateY(-2px)";this.style.boxShadow="0 6px 16px rgba(22,163,74,0.4)"' onmouseout='this.style.transform="translateY(0)";this.style.boxShadow="0 4px 12px rgba(22,163,74,0.3)"'>
+                    ✓ Yes, Swap Teams
+                </button>
+                <button onclick='cancelTeamSwap()' style='flex:1;background:var(--locked-bg);color:var(--text-muted);padding:12px 24px;border:2px solid var(--border-color);border-radius:10px;font-weight:bold;cursor:pointer;font-size:15px;transition:all 0.2s;' onmouseover='this.style.background="var(--border-color)";this.style.color="white"' onmouseout='this.style.background="var(--locked-bg)";this.style.color="var(--text-muted)"'>
+                    × Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    const modal = document.createElement('div');
+    modal.id = 'swap-modal';
+    modal.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card-bg);padding:40px;z-index:9999;border-radius:16px;box-shadow:var(--card-shadow);min-width:400px;max-width:90vw;animation:modalFadeIn 0.2s ease;';
+    modal.innerHTML = html;
+    document.body.appendChild(modal);
+    const backdrop = document.createElement('div');
+    backdrop.id = 'swap-modal-backdrop';
+    backdrop.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9998;animation:backdropFadeIn 0.2s ease;';
+    backdrop.onclick = cancelTeamSwap;
+    document.body.appendChild(backdrop);
+}
+
+function cancelTeamSwap() {
+    const modal = document.getElementById('swap-modal');
+    const backdrop = document.getElementById('swap-modal-backdrop');
+    if (modal) modal.remove();
+    if (backdrop) backdrop.remove();
+    unlockedTeams = [];
+    renderForm();
+}
+
+async function confirmTeamSwap() {
+    const [t1, t2] = unlockedTeams;
+    // Final safety checks
+    // Final safety checks - Layer 1 Hardening Usage
+    if (AdminSecurity.getRole() !== ROLE_ABSOLUTE) {
+        alert("🚫 Permission Denied: Only the absolute admin can perform this action.");
+        cancelTeamSwap();
+        return;
+    }
+    const round = currentData.rounds[t1.rIdx];
+    const m1 = round.matches[t1.mIdx];
+    const m2 = round.matches[t2.mIdx];
+    const teamA = t1.side === 'A' ? m1.teamA : m1.teamB;
+    const teamB = t2.side === 'A' ? m2.teamA : m2.teamB;
+    if (teamA.points != null || teamB.points != null || m1.winner || m2.winner) {
+        alert("❌ Cannot swap teams with recorded scores or completed matches.");
+        cancelTeamSwap();
+        return;
+    }
+
+    // Store original teams for rollback if save fails
+    const originalTeamA_M1 = t1.side === 'A' ? m1.teamA : m1.teamB;
+    const originalTeamB_M2 = t2.side === 'A' ? m2.teamA : m2.teamB;
+
+    // Swap teams in their match slots
+    if (t1.side === 'A') m1.teamA = teamB; else m1.teamB = teamB;
+    if (t2.side === 'A') m2.teamA = teamA; else m2.teamB = teamA;
+
+    // Log swap
+    logStructuralAction("Team Swap", {
+        admin: currentUser,
+        timestamp: new Date().toISOString(),
+        round: round.name,
+        teamA: { name: teamA.name, match: m1.id, side: t1.side },
+        teamB: { name: teamB.name, match: m2.id, side: t2.side }
+    });
+
+    // Save immediately and WAIT for result
+    try {
+        showStatus("💾 Saving team swap to GitHub...", "#f59e0b");
+        await saveToGitHub();
+
+        // Only after successful save:
+        showStatus(`✅ Teams swapped successfully: ${teamA.name} ↔ ${teamB.name}`, "#16a34a");
+
+        // Auto re-lock
+        unlockedTeams = [];
+        cancelTeamSwap();
+        renderForm();
+    } catch (error) {
+        // Rollback swap if save failed
+        if (t1.side === 'A') m1.teamA = originalTeamA_M1; else m1.teamB = originalTeamA_M1;
+        if (t2.side === 'A') m2.teamA = originalTeamB_M2; else m2.teamB = originalTeamB_M2;
+
+        // Remove the log entry since swap failed
+        if (currentData.structuralLog && currentData.structuralLog.length > 0) {
+            currentData.structuralLog.pop();
+        }
+
+        showStatus("❌ Swap failed - changes rolled back", "#ef4444");
+        alert(`Team swap failed to save to GitHub.\n\nError: ${error.message}\n\nThe swap has been rolled back. Please try again.`);
+
+        // Keep modal open and teams unlocked so user can retry
+        renderForm();
+    }
+}
+// === Team Switch Mode State ===
+let switchModeActive = false;
+let unlockedTeams = [];
+let switchModeRoundIdx = null;
+
+// === Admin Role Definitions ===
+const ROLE_ABSOLUTE = "absolute";
+const ROLE_LIMITED = "limited";
+// === Absolute Admin Hardening: Max Difficulty Bypass Mode ===
+// Layer 1 (Closure), Layer 2 (Secure Storage), Layer 4 (Freeze)
+const AdminSecurity = (() => {
+    let role = null;
+    const SALT = "ksss-secure-salt-v1"; // Hardcoded salt for integrity check
+
+    // --- Private Helpers ---
+
+    async function signRole(roleValue) {
+        if (!roleValue) return null;
+        const nonce = Date.now().toString();
+        const hash = await hashString(roleValue + SALT + nonce);
+        return { role: roleValue, nonce, hash };
+    }
+
+    async function verifyRole(storedObj) {
+        if (!storedObj || !storedObj.role || !storedObj.nonce || !storedObj.hash) return null;
+        const computed = await hashString(storedObj.role + SALT + storedObj.nonce);
+        if (computed === storedObj.hash) return storedObj.role;
+        if (CONFIG.debug) console.warn("🔒 Security Alert: Admin Role Tampered!");
+        return null; // Tamper detected
+    }
+
+    async function setRole(newRole) {
+        role = newRole;
+        if (newRole) {
+            const signed = await signRole(newRole);
+            sessionStorage.setItem("secureAdminRole", JSON.stringify(signed));
+        } else {
+            sessionStorage.removeItem("secureAdminRole");
+        }
+        sessionStorage.removeItem("currentAdminRole");
+    }
+
+    // --- Public Logic (Moved In to Protect setRole) ---
+
+    function login() {
+        currentUser = document.getElementById("admin-name").value;
+        const tokenInput = document.getElementById("gh-token").value.trim();
+
+        if (!currentUser || !tokenInput)
+            return alert("Mr. President, please select your name and paste your token.");
+
+        // Role assignment and secondary authentication
+        if (currentUser === "Y-JAMMEH") {
+            const code = prompt("Enter structural authentication code:");
+            const expectedHash = "45888f0c28b9e1007b74238f0dd90312efe9b3c4298957c80079845ed7725384";
+            hashString(code).then(hash => {
+                if (hash !== expectedHash) {
+                    alert("Incorrect structural authentication code. Access denied.");
+                    return;
+                }
+                setRole(ROLE_ABSOLUTE).then(() => finishLogin(tokenInput));
+            });
+        } else {
+            setRole(ROLE_LIMITED).then(() => finishLogin(tokenInput));
+        }
+    }
+
+    function finishLogin(tokenInput) {
+        sessionStorage.setItem("adminUser", currentUser);
+        sessionStorage.setItem("githubToken", tokenInput);
+
+        document.getElementById("login-section").classList.add("hidden");
+        document.getElementById("grade-section").classList.remove("hidden");
+        document.getElementById("admin-display").innerHTML =
+            `✅ <strong>Authenticated:</strong> ${currentUser} | <strong>Status:</strong> <span style="color: var(--success);">Active Session</span> | <a href="#" onclick="logout(); return false;" style="color: var(--danger); margin-left: 10px;">Logout</a>`;
+        if (typeof showRoleBadge === 'function') showRoleBadge();
+    }
+
+    function logout() {
+        sessionStorage.removeItem("adminUser");
+        sessionStorage.removeItem("githubToken");
+        sessionStorage.removeItem("currentAdminRole");
+        sessionStorage.removeItem("secureAdminRole");
+        currentUser = "";
+        currentData = null;
+        currentSha = "";
+        window.location.reload();
+    }
+
+    async function verifySession() {
+        const token = sessionStorage.getItem("githubToken");
+        if (!token) {
+            showLoginModal();
+            return;
+        }
+
+        // Verify stored role signature
+        const storedRole = sessionStorage.getItem("secureAdminRole");
+        if (storedRole) {
+            try {
+                const { role, nonce, hash } = JSON.parse(storedRole);
+                const reHash = await hashString(role + nonce + SALT);
+                if (reHash === hash) {
+                    setRoleInternal(role);
+                } else {
+                    console.warn("Tampered role detected!");
+                    sessionStorage.removeItem("secureAdminRole");
+                    setRoleInternal(null);
+                }
+            } catch (e) {
+                console.error("Role parse error", e);
+                sessionStorage.removeItem("secureAdminRole");
+            }
+        }
+
+        showRoleBadge();
+        loadMatches();
+
+        // Gap 5: Function Self-Protection
+        freezeCriticalFunctions();
+    }
+
+    function freezeCriticalFunctions() {
+        const criticalGlobals = [
+            "verifyIntegrity",
+            "saveToGitHub",
+            "activateTeamSwitchMode",
+            "exitTeamSwitchMode",
+            "createMatchCard",
+            "renderForm",
+            "fetchWithRetry",
+            "AdminSecurity"
+        ];
+
+        criticalGlobals.forEach(funcName => {
+            if (window[funcName]) {
+                Object.defineProperty(window, funcName, {
+                    value: window[funcName],
+                    writable: false,
+                    configurable: false
+                });
+            }
+        });
+
+        if (CONFIG.debug) console.log("🔒 Critical functions frozen.");
+    }
+
+    return Object.freeze({
+        login,
+        logout,
+        verifySession,
+        getRole: () => role
+    });
+})();
+
+// Expose hooks for HTML
+window.login = AdminSecurity.login;
+window.logout = AdminSecurity.logout;
+
 const DEFAULT_CONFIG = {
     owner: "KSSS-MTC",
     repo: "KSSS_MATH_QUIZ_COMPETITION"
@@ -38,47 +358,72 @@ const CONFIG = {
     debug: false // Set to true to enable debug logging
 };
 
+// Layer 3: Runtime Integrity Check
+function verifyIntegrity() {
+    // Check if Secure Module is intact
+    if (!window.AdminSecurity || !Object.isFrozen(AdminSecurity)) {
+        if (CONFIG.debug) console.warn("🚨 Integrity Check Failed: AdminSecurity compromised");
+        return false;
+    }
+    return true;
+}
+
+// === Security Utilities (Gap 1: XSS Remediation) ===
+function safeRender(element, value) {
+    if (element) {
+        element.textContent = String(value ?? "");
+    }
+}
+
+function createEl(tag, className, text, styles) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text !== undefined && text !== null) el.textContent = String(text);
+    if (styles) el.style.cssText = styles;
+    return el;
+}
+
 // API and UI Constants
 const CONSTANTS = {
     // API Settings
     MAX_RETRIES: 3,
     INITIAL_RETRY_DELAY: 1000, // ms
     MAX_RETRY_DELAY: 5000, // ms
-    
+
     // Cache Settings
     CACHE_DURATION: 15 * 60 * 1000, // 15 minutes in ms (reduced API calls)
     CACHE_KEY_PREFIX: "ksss_cache_",
-    
+
     // Pagination Settings
     MATCHES_PER_PAGE: 20,
     MAX_HISTORY_ENTRIES: 50,
-    
+
     // UI Display
     MAX_HOME_MATCHES: 6, // Number of matches shown on homepage
-    
+
     // UI Timeouts
     SUCCESS_MESSAGE_DURATION: 4000, // ms
     ERROR_MESSAGE_DURATION: 0, // 0 = no auto-hide
     RELOAD_DELAY_AFTER_SAVE: 1500, // ms
     VALIDATION_ERROR_DISPLAY: 2000, // ms
-    
+
     // Validation
     MIN_SCORE: 0,
     MAX_SCORE: 100,
-    
+
     // Match Types
     MATCH_TYPE_NORMAL: "normal",
     MATCH_TYPE_BEST_LOSER: "best_loser",
-    
+
     // Round Status
     ROUND_STATUS_ACTIVE: "active",
     ROUND_STATUS_LOCKED: "locked",
-    
+
     // Default Values
     DEFAULT_LOCATION: "Maths Lab",
     DEFAULT_TIME: "TBD",
     DEFAULT_DATE: "Pending",
-    
+
     // HTTP Status Codes
     HTTP_UNAUTHORIZED: 401,
     HTTP_FORBIDDEN: 403,
@@ -93,7 +438,7 @@ const CONSTANTS = {
 if (CONFIG.debug) console.log("🚀 Admin.js loaded - Version:", CONFIG.version);
 
 let currentUser = "";
-let githubToken = "";
+// githubToken is now fetched from sessionStorage only
 let currentData = null;
 let currentSha = "";
 
@@ -110,6 +455,45 @@ let allMatches = []; // Store all matches for pagination
 let undoStack = [];
 let redoStack = [];
 let isApplyingHistory = false;
+
+/**
+ * Log structural actions (team swaps, round deletions, etc.)
+ * Creates or appends to structuralLog array in currentData
+ * @param {string} actionType - Type of action (e.g., "Team Swap", "Round Deletion")
+ * @param {object} details - Detailed information about the action
+ */
+function logStructuralAction(actionType, details) {
+    if (!currentData) {
+        console.error("Cannot log structural action: currentData is null");
+        return;
+    }
+
+    // Initialize structuralLog array if it doesn't exist
+    if (!currentData.structuralLog) {
+        currentData.structuralLog = [];
+    }
+
+    // Create log entry
+    const logEntry = {
+        action: actionType,
+        timestamp: new Date().toISOString(),
+        admin: details.admin || currentUser,
+        details: details
+    };
+
+    // Append to log
+    currentData.structuralLog.push(logEntry);
+
+    // Keep log size manageable (max 100 entries)
+    if (currentData.structuralLog.length > 100) {
+        currentData.structuralLog.shift(); // Remove oldest entry
+    }
+
+    if (CONFIG.debug) {
+        console.log(`📋 Structural Action Logged: ${actionType}`, logEntry);
+    }
+}
+
 
 function cloneCompetitionData(data) {
     return JSON.parse(JSON.stringify(data));
@@ -145,31 +529,31 @@ function undoChange() {
     if (!currentData || undoStack.length === 0) return;
 
     isApplyingHistory = true;
-    
+
     // Store old round count before undo
     const oldRoundCount = currentData.rounds?.length || 0;
-    
+
     redoStack.push(cloneCompetitionData(currentData));
     currentData = undoStack.pop();
-    
+
     // Check if a round was removed (round generation was reverted)
     const newRoundCount = currentData.rounds?.length || 0;
     if (newRoundCount < oldRoundCount && newRoundCount > 0) {
         // Round was removed - check if last round has Best Loser match that should be cleaned up
         const lastRound = currentData.rounds[newRoundCount - 1];
-        
+
         // Remove Best Loser matches from the newly-unlocked round
         // Best Loser matches should only exist when preparing for next round generation
         if (lastRound && lastRound.status !== "locked") {
             const originalMatchCount = lastRound.matches.length;
             lastRound.matches = lastRound.matches.filter(m => m.type !== "best_loser");
-            
+
             if (CONFIG.debug && lastRound.matches.length < originalMatchCount) {
                 console.log(`Cleaned up Best Loser match from ${lastRound.name} after round revert`);
             }
         }
     }
-    
+
     isApplyingHistory = false;
 
     renderForm();
@@ -205,38 +589,38 @@ function setupIOSKeyboardHandling() {
     if (!window.visualViewport || !/iPhone|iPad|iPod/.test(navigator.userAgent)) {
         return;
     }
-    
+
     // Remove any existing listener
     if (viewportResizeHandler) {
         window.visualViewport.removeEventListener('resize', viewportResizeHandler);
     }
-    
+
     viewportResizeHandler = () => {
         const modal = document.querySelector('.modal-container');
         if (!modal) return;
-        
+
         const viewport = window.visualViewport;
         const keyboardHeight = window.innerHeight - viewport.height;
-        
+
         // Store original position on first resize
         if (originalModalTop === null) {
             originalModalTop = modal.style.top || '50%';
         }
-        
+
         if (keyboardHeight > 100) {
             // Keyboard is visible - adjust modal position
             const modalHeight = modal.offsetHeight;
             const availableSpace = viewport.height;
-            
+
             // Calculate safe top position
             let newTop = Math.max(10, (availableSpace - modalHeight) / 2);
-            
+
             modal.style.position = 'fixed';
             modal.style.top = `${newTop}px`;
             modal.style.transform = 'translateX(-50%)';
             modal.style.maxHeight = `${availableSpace - 20}px`;
             modal.style.overflowY = 'auto';
-            
+
             // Scroll focused input into view
             const focusedInput = document.activeElement;
             if (focusedInput && (focusedInput.tagName === 'INPUT' || focusedInput.tagName === 'SELECT')) {
@@ -252,7 +636,7 @@ function setupIOSKeyboardHandling() {
             modal.style.maxHeight = '85vh';
         }
     };
-    
+
     window.visualViewport.addEventListener('resize', viewportResizeHandler);
     window.visualViewport.addEventListener('scroll', viewportResizeHandler);
 }
@@ -283,16 +667,16 @@ function cleanupIOSKeyboardHandling() {
  */
 async function fetchWithRetry(url, options = {}, maxRetries = CONSTANTS.MAX_RETRIES) {
     let lastError;
-    
+
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
             const response = await fetch(url, options);
-            
+
             // Handle specific GitHub API errors
             if (!response.ok) {
                 const errorText = await response.text();
                 let errorMessage;
-                
+
                 switch (response.status) {
                     case CONSTANTS.HTTP_UNAUTHORIZED:
                         errorMessage = "Authentication failed. Please check your GitHub token.";
@@ -321,17 +705,17 @@ async function fetchWithRetry(url, options = {}, maxRetries = CONSTANTS.MAX_RETR
                     default:
                         errorMessage = `GitHub API Error (${response.status})`;
                 }
-                
+
                 const error = new Error(errorMessage);
                 error.status = response.status;
                 error.response = response;
                 throw error;
             }
-            
+
             return response;
         } catch (error) {
             lastError = error;
-            
+
             // Don't retry on authentication/permission errors or conflicts
             const nonRetryableErrors = [
                 CONSTANTS.HTTP_UNAUTHORIZED,
@@ -340,23 +724,23 @@ async function fetchWithRetry(url, options = {}, maxRetries = CONSTANTS.MAX_RETR
                 CONSTANTS.HTTP_CONFLICT,
                 CONSTANTS.HTTP_UNPROCESSABLE
             ];
-            
+
             if (error.status && nonRetryableErrors.includes(error.status)) {
                 throw error;
             }
-            
+
             // If we have retries left and it's a retryable error, wait and retry
             if (attempt < maxRetries - 1) {
                 const delay = Math.min(
                     CONSTANTS.INITIAL_RETRY_DELAY * Math.pow(2, attempt),
                     CONSTANTS.MAX_RETRY_DELAY
                 );
-                showStatus(`Retry ${attempt + 1}/${maxRetries - 1} in ${delay/1000}s...`, "#f59e0b");
+                showStatus(`Retry ${attempt + 1}/${maxRetries - 1} in ${delay / 1000}s...`, "#f59e0b");
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
     }
-    
+
     // All retries failed
     throw lastError;
 }
@@ -370,17 +754,17 @@ function getCachedData(key) {
     try {
         const cached = localStorage.getItem(CONSTANTS.CACHE_KEY_PREFIX + key);
         if (!cached) return null;
-        
+
         const { data, timestamp } = JSON.parse(cached);
         const age = Date.now() - timestamp;
-        
+
         if (age > CONSTANTS.CACHE_DURATION) {
             // Cache expired
             localStorage.removeItem(CONSTANTS.CACHE_KEY_PREFIX + key);
             return null;
         }
-        
-        if (CONFIG.debug) console.log(`📦 Cache HIT for ${key} (age: ${Math.round(age/1000)}s)`);
+
+        if (CONFIG.debug) console.log(`📦 Cache HIT for ${key} (age: ${Math.round(age / 1000)}s)`);
         return data;
     } catch (error) {
         if (CONFIG.debug) console.error("Cache read error:", error);
@@ -430,7 +814,7 @@ function clearCache() {
  */
 function setButtonLoading(button, isLoading) {
     if (!button) return;
-    
+
     if (isLoading) {
         button.classList.add("btn-loading");
         button.disabled = true;
@@ -456,7 +840,7 @@ function setButtonLoading(button, isLoading) {
  */
 function isRoundComplete(round) {
     if (!round || !round.matches || round.matches.length === 0) return false;
-    
+
     return round.matches.every(m => {
         return m.winner !== null && m.winner !== undefined && m.winner !== "";
     });
@@ -469,7 +853,7 @@ function isRoundComplete(round) {
  */
 function getQualifiedTeams(round) {
     if (!round || !round.matches) return [];
-    
+
     const winners = [];
     round.matches.forEach(m => {
         if (CONFIG.debug) console.log(`Match ${m.id}: winner="${m.winner}", typeofWinner=${typeof m.winner}`);
@@ -480,7 +864,7 @@ function getQualifiedTeams(round) {
             if (CONFIG.debug) console.log(`  ❌ Not added (null/undefined/empty)`);
         }
     });
-    
+
     if (CONFIG.debug) console.log("Total Winners Found:", winners);
     return winners;
 }
@@ -492,13 +876,13 @@ function getQualifiedTeams(round) {
  */
 function getLosersSorted(round) {
     if (!round || !round.matches) return [];
-    
+
     const losers = [];
-    
+
     round.matches.forEach(m => {
         // Skip if match type is best_loser to avoid recursion
         if (m.type === "best_loser") return;
-        
+
         if (m.winner !== null && m.winner !== undefined && m.winner !== "") {
             // Determine who lost
             if (m.winner === m.teamA.name && m.teamB.points !== null) {
@@ -514,10 +898,10 @@ function getLosersSorted(round) {
             }
         }
     });
-    
+
     // Sort descending by points
     losers.sort((a, b) => b.points - a.points);
-    
+
     return losers;
 }
 
@@ -528,7 +912,7 @@ function getLosersSorted(round) {
  */
 function hasBestLoserMatch(round) {
     if (!round || !round.matches) return false;
-    
+
     return round.matches.some(m => m.type === "best_loser");
 }
 
@@ -551,12 +935,12 @@ function getLastRound() {
 function canGenerateNextRound() {
     const lastRound = getLastRound();
     if (!lastRound) return false;
-    
+
     // Check if last round is complete
     if (!isRoundComplete(lastRound)) {
         return false;
     }
-    
+
     // Check if qualified teams are even
     const qualified = getQualifiedTeams(lastRound);
     if (qualified.length % 2 !== 0) {
@@ -565,7 +949,7 @@ function canGenerateNextRound() {
             return false; // Need to create best loser match first
         }
     }
-    
+
     return true;
 }
 
@@ -579,15 +963,15 @@ function getMatchStatus(match, isLocked) {
     if (isLocked) {
         return 'locked';
     }
-    
+
     if (match.winner !== null && match.winner !== undefined && match.winner !== "") {
         return 'completed';
     }
-    
+
     if (match.teamA.points !== null || match.teamB.points !== null) {
         return 'in-progress';
     }
-    
+
     return 'pending';
 }
 
@@ -603,69 +987,22 @@ function getStatusBadgeHTML(status) {
         'in-progress': '⏳ In Progress',
         'pending': '⏸️ Pending'
     };
-    
+
     return `<span class="match-status-badge ${status}">${badges[status] || status}</span>`;
 }
 
-/**
- * Authenticate user with GitHub token and store credentials in sessionStorage
- */
-function login() {
-    currentUser = document.getElementById("admin-name").value;
-    githubToken = document.getElementById("gh-token").value.trim();
-
-    if (!currentUser || !githubToken)
-        return alert("Mr. President, please select your name and paste your token.");
-
-    // Store credentials in sessionStorage for the current session only
-    sessionStorage.setItem("adminUser", currentUser);
-    sessionStorage.setItem("githubToken", githubToken);
-
-    document.getElementById("login-section").classList.add("hidden");
-    document.getElementById("grade-section").classList.remove("hidden");
-    document.getElementById("admin-display").innerHTML =
-        `✅ <strong>Authenticated:</strong> ${currentUser} | <strong>Status:</strong> <span style="color: var(--success);">Active Session</span> | <a href="#" onclick="logout(); return false;" style="color: var(--danger); margin-left: 10px;">Logout</a>`;
-}
-
-/**
- * Log out user and clear all session data
- */
-function logout() {
-    // Clear session data
-    sessionStorage.removeItem("adminUser");
-    sessionStorage.removeItem("githubToken");
-    currentUser = "";
-    githubToken = "";
-    currentData = null;
-    currentSha = "";
-    
-    // Reset UI
-    document.getElementById("login-section").classList.remove("hidden");
-    document.getElementById("grade-section").classList.add("hidden");
-    document.getElementById("editor-section").classList.add("hidden");
-    document.getElementById("gh-token").value = "";
-    document.getElementById("admin-name").selectedIndex = 0;
-    
-    showStatus("Logged out successfully", "#16a34a");
+// Utility: Hash a string using SHA-256 and return hex
+async function hashString(str) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // Check for existing session on page load
 window.addEventListener("DOMContentLoaded", () => {
-    const savedUser = sessionStorage.getItem("adminUser");
-    const savedToken = sessionStorage.getItem("githubToken");
-    
-    if (savedUser && savedToken) {
-        currentUser = savedUser;
-        githubToken = savedToken;
-        
-        // Auto-login
-        document.getElementById("login-section").classList.add("hidden");
-        document.getElementById("grade-section").classList.remove("hidden");
-        document.getElementById("admin-display").innerHTML =
-            `✅ <strong>Authenticated:</strong> ${currentUser} | <strong>Status:</strong> <span style="color: var(--success);">Active Session</span> | <a href="#" onclick="logout(); return false;" style="color: var(--danger); margin-left: 10px;">Logout</a>`;
-        
-        showStatus("Session restored", "#16a34a");
-    }
+    AdminSecurity.verifySession();
+
 
     // Keyboard shortcuts: Ctrl+Z (Undo), Ctrl+Y / Ctrl+Shift+Z (Redo), Ctrl+E (CSV), Ctrl+P (PDF)
     document.addEventListener("keydown", (event) => {
@@ -705,7 +1042,7 @@ async function loadMatches(forceRefresh = false) {
 
     document.getElementById("loading-overlay").classList.remove("hidden");
     document.getElementById("editor-section").classList.add("hidden");
-    
+
     if (loadBtn) setButtonLoading(loadBtn, true);
 
     try {
@@ -716,25 +1053,25 @@ async function loadMatches(forceRefresh = false) {
                 currentData = cachedData.data;
                 currentSha = cachedData.sha;
                 resetHistory();
-                
+
                 renderForm();
                 updateSidebarStats();
-                
+
                 document.getElementById("loading-overlay").classList.add("hidden");
                 document.getElementById("editor-section").classList.remove("hidden");
-                
+
                 showStatus("✅ Matches Loaded (Cached)", "#16a34a");
-                
+
                 if (loadBtn) setButtonLoading(loadBtn, false);
                 return;
             }
         }
-        
+
         // Cache miss or force refresh - fetch from GitHub
         showStatus(forceRefresh ? "Refreshing from GitHub..." : "Connecting to GitHub...", "#3b82f6");
-        
+
         const res = await fetchWithRetry(url, {
-            headers: { Authorization: `token ${githubToken}` }
+            headers: { Authorization: `token ${sessionStorage.getItem("githubToken")}` }
         });
 
         const json = await res.json();
@@ -743,7 +1080,7 @@ async function loadMatches(forceRefresh = false) {
         const decoded = decodeURIComponent(escape(atob(json.content)));
         currentData = JSON.parse(decoded);
         resetHistory();
-        
+
         // Cache the fetched data
         setCachedData(cacheKey, { data: currentData, sha: currentSha });
 
@@ -760,16 +1097,16 @@ async function loadMatches(forceRefresh = false) {
 
         document.getElementById("loading-overlay").classList.add("hidden");
         document.getElementById("editor-section").classList.remove("hidden");
-        
+
         // Update sidebar stats
         updateSidebarStats();
-        
+
         showStatus("✅ Matches Loaded Successfully", "#16a34a");
     } catch (e) {
         document.getElementById("loading-overlay").classList.add("hidden");
         if (CONFIG.debug) console.error("Load Error:", e);
         showStatus(`Error: ${e.message}`, "#ef4444");
-        
+
         // Show user-friendly error alert
         alert(`Failed to load matches:\n\n${e.message}\n\nPlease check:\n• Your GitHub token is valid\n• You have internet connection\n• The repository exists`);
     } finally {
@@ -781,6 +1118,155 @@ async function loadMatches(forceRefresh = false) {
  * Render all rounds and matches to the DOM
  * Generates HTML for editable and locked match cards
  */
+function createStatusBadge(status) {
+    const badges = {
+        'locked': '🔒 Locked',
+        'completed': '✅ Complete',
+        'in-progress': '⏳ In Progress',
+        'pending': '⏸️ Pending'
+    };
+    const text = badges[status] || status;
+    return createEl("span", `match-status-badge ${status}`, text);
+}
+
+function createMatchCard(m, rIdx, mIdx, isLocked) {
+    // --- Team Switch Mode logic ---
+    const switchModeThisRound = switchModeActive && switchModeRoundIdx === rIdx;
+    const eligibleA = switchModeThisRound && !isLocked && m.teamA.points == null && !m.winner;
+    const eligibleB = switchModeThisRound && !isLocked && m.teamB.points == null && !m.winner;
+    const unlockedA = switchModeThisRound && unlockedTeams.some(t => t.rIdx === rIdx && t.mIdx === mIdx && t.side === 'A');
+    const unlockedB = switchModeThisRound && unlockedTeams.some(t => t.rIdx === rIdx && t.mIdx === mIdx && t.side === 'B');
+
+    const isBestLoser = m.type === "best_loser";
+    const matchStatus = getMatchStatus(m, isLocked);
+
+    const card = createEl("div", `match-card ${isLocked ? "locked" : "active"} ${isBestLoser ? "best-loser-match" : ""} ${matchStatus}`);
+    card.dataset.roundIdx = rIdx;
+
+    // Header
+    const header = createEl("div", "", null, "display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;");
+
+    const titleText = isBestLoser ? '🏆 BEST LOSER PLAYOFF' : ('Match #' + m.id);
+    if (isBestLoser && !isLocked) {
+        // Add Round Name for editable best loser
+        // Note: round name is not passed to createMatchCard directly, but logic suggests it was used: '... (' + round.name + ')'
+        // I'll skip round name here to strictly follow passed args, or I can access currentData.rounds[rIdx].name
+        // Let's safe access it.
+        const rName = currentData.rounds[rIdx]?.name || "";
+        header.appendChild(createEl("div", "", `🏆 BEST LOSER PLAYOFF (${rName})`, "font-weight:bold; color:#f59e0b;"));
+    } else {
+        header.appendChild(createEl("div", "", titleText, isBestLoser ? "font-weight:bold; color:#f59e0b;" : "font-weight:bold;"));
+    }
+
+    header.appendChild(createStatusBadge(matchStatus));
+    card.appendChild(header);
+
+    if (isLocked) {
+        // Locked View
+        const meta = createEl("div", "", `${m.schedule.date ?? "-"} | ${m.schedule.time ?? "-"} | ${m.schedule.location ?? "-"}`, "font-size:12px; color:#64748b;");
+        card.appendChild(meta);
+
+        const scores = createEl("div", "", null, "display:flex; justify-content:space-between; margin-top:10px; font-weight:bold;");
+        scores.appendChild(createEl("span", "", `${m.teamA.name}: ${m.teamA.points ?? "-"}`));
+        scores.appendChild(createEl("span", "vs-sep", "VS")); // Added class for consistency if needed, or just span
+        scores.appendChild(createEl("span", "", `${m.teamB.name}: ${m.teamB.points ?? "-"}`));
+        card.appendChild(scores);
+
+        const winnerDiv = createEl("div", "", `🏆 Winner: ${m.winner ?? "Pending"}`, "color:var(--primary); font-size:12px; margin-top:5px; font-weight:bold;");
+        card.appendChild(winnerDiv);
+
+    } else {
+        // Editable View
+
+        // Schedule Grid
+        const grid = createEl("div", "", null, "display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:12px;");
+
+        ['date', 'time', 'location'].forEach(field => {
+            const col = createEl("div");
+            col.appendChild(createEl("label", "", field.charAt(0).toUpperCase() + field.slice(1)));
+            const input = createEl("input");
+            input.type = "text";
+            input.value = m.schedule[field] ?? "";
+            if (switchModeThisRound) input.disabled = true;
+            input.onchange = (e) => updateSchedule(rIdx, mIdx, field, e.target.value);
+            col.appendChild(input);
+            grid.appendChild(col);
+        });
+        card.appendChild(grid);
+
+        // Score Row
+        const scoreRow = createEl("div", "score-row");
+
+        // Team A Column
+        const colA = createEl("div");
+        const labelA = createEl("label", "", (unlockedA ? '🔓 ' : '') + m.teamA.name + (unlockedA ? ' (Click to Re-lock)' : eligibleA ? ' 👆 Click to Unlock' : ''));
+
+        if (unlockedA) {
+            labelA.style.cssText = "background:linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:bold;box-shadow:0 2px 8px rgba(59,130,246,0.4);animation:pulse 1.5s infinite;";
+            labelA.onclick = () => relockTeam(rIdx, mIdx, 'A');
+        } else if (eligibleA) {
+            labelA.style.cssText = "cursor:pointer;color:#3b82f6;font-weight:bold;text-decoration:underline;padding:4px 8px;border-radius:6px;background:var(--active-bg);transition:all 0.2s ease;";
+            labelA.onmouseover = function () { this.style.background = 'var(--active-overlay)'; };
+            labelA.onmouseout = function () { this.style.background = 'var(--active-bg)'; };
+            labelA.onclick = () => unlockTeam(rIdx, mIdx, 'A');
+        }
+        colA.appendChild(labelA);
+
+        const inputA = createEl("input");
+        inputA.type = "number";
+        inputA.value = m.teamA.points ?? "";
+        inputA.min = CONSTANTS.MIN_SCORE;
+        inputA.max = CONSTANTS.MAX_SCORE;
+        inputA.step = "1";
+        inputA.placeholder = `${CONSTANTS.MIN_SCORE}-${CONSTANTS.MAX_SCORE} points`;
+        inputA.ariaLabel = `Score for ${m.teamA.name}`;
+        if (switchModeThisRound) inputA.disabled = true;
+        inputA.oninput = (e) => updateScores(rIdx, mIdx, 'teamA', e.target.value);
+        colA.appendChild(inputA);
+        scoreRow.appendChild(colA);
+
+        // VS Label
+        scoreRow.appendChild(createEl("div", "vs-label", "VS"));
+
+        // Team B Column
+        const colB = createEl("div");
+        const labelB = createEl("label", "", (unlockedB ? '🔓 ' : '') + m.teamB.name + (unlockedB ? ' (Click to Re-lock)' : eligibleB ? ' 👆 Click to Unlock' : ''));
+
+        if (unlockedB) {
+            labelB.style.cssText = "background:linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:bold;box-shadow:0 2px 8px rgba(59,130,246,0.4);animation:pulse 1.5s infinite;";
+            labelB.onclick = () => relockTeam(rIdx, mIdx, 'B');
+        } else if (eligibleB) {
+            labelB.style.cssText = "cursor:pointer;color:#3b82f6;font-weight:bold;text-decoration:underline;padding:4px 8px;border-radius:6px;background:#eff6ff;transition:all 0.2s ease;";
+            labelB.onmouseover = function () { this.style.background = '#dbeafe'; };
+            labelB.onmouseout = function () { this.style.background = '#eff6ff'; };
+            labelB.onclick = () => unlockTeam(rIdx, mIdx, 'B');
+        }
+        colB.appendChild(labelB);
+
+        const inputB = createEl("input");
+        inputB.type = "number";
+        inputB.value = m.teamB.points ?? "";
+        inputB.min = CONSTANTS.MIN_SCORE;
+        inputB.max = CONSTANTS.MAX_SCORE;
+        inputB.step = "1";
+        inputB.placeholder = `${CONSTANTS.MIN_SCORE}-${CONSTANTS.MAX_SCORE} points`;
+        inputB.ariaLabel = `Score for ${m.teamB.name}`;
+        if (switchModeThisRound) inputB.disabled = true;
+        inputB.oninput = (e) => updateScores(rIdx, mIdx, 'teamB', e.target.value);
+        colB.appendChild(inputB);
+        scoreRow.appendChild(colB);
+
+        card.appendChild(scoreRow);
+
+        // Winner Box
+        const winBox = createEl("div", "winner-box", `🏆 Winner: ${m.winner ?? "Pending"}`);
+        winBox.id = `win-${rIdx}-${mIdx}`;
+        card.appendChild(winBox);
+    }
+
+    return card;
+}
+
 function renderForm() {
     const container = document.getElementById("matches-list");
     container.innerHTML = "";
@@ -788,131 +1274,31 @@ function renderForm() {
     currentData.rounds.forEach((round, rIdx) => {
         const isLocked = round.status === "locked";
 
-        const divider = document.createElement("div");
-        divider.className = "round-divider";
-        divider.innerHTML = `
-            <span>${round.name}</span>
-            <span class="round-badge">${isLocked ? "🔒 ARCHIVED" : "🔓 EDITABLE"}</span>
-        `;
+        const divider = createEl("div", "round-divider");
+        divider.appendChild(createEl("span", "", round.name));
+        divider.appendChild(createEl("span", "round-badge", isLocked ? "🔒 ARCHIVED" : "🔓 EDITABLE"));
         container.appendChild(divider);
 
         round.matches.forEach((m, mIdx) => {
-            const card = document.createElement("div");
-            // Add special styling for best loser matches
-            const isBestLoser = m.type === "best_loser";
-            const matchStatus = getMatchStatus(m, isLocked);
-            card.className = `match-card ${isLocked ? "locked" : "active"} ${isBestLoser ? "best-loser-match" : ""} ${matchStatus}`;
-            card.dataset.roundIdx = rIdx; // For filtering
-            
-            if (isBestLoser) {
-                card.style.background = "#fff9e6";
-                card.style.borderLeft = "5px solid #f59e0b";
-            }
-
-            if (isLocked) {
-                card.innerHTML = `
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                        ${isBestLoser ? '<div style="font-weight:bold; color:#f59e0b;">🏆 BEST LOSER PLAYOFF</div>' : '<div style="font-weight:bold;">Match #' + m.id + '</div>'}
-                        ${getStatusBadgeHTML(matchStatus)}
-                    </div>
-                    <div style="font-size:12px; color:#64748b;">
-                        ${m.schedule.date ?? "-"} |
-                        ${m.schedule.time ?? "-"} |
-                        ${m.schedule.location ?? "-"}
-                    </div>
-
-                    <div style="display:flex; justify-content:space-between; margin-top:10px; font-weight:bold;">
-                        <span>${m.teamA.name}: ${m.teamA.points ?? "-"}</span>
-                        <span>VS</span>
-                        <span>${m.teamB.name}: ${m.teamB.points ?? "-"}</span>
-                    </div>
-
-                    <div style="color:var(--primary); font-size:12px; margin-top:5px; font-weight:bold;">
-                        🏆 Winner: ${m.winner ?? "Pending"}
-                    </div>
-                `;
-            } else {
-                card.innerHTML = `
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                        ${isBestLoser ? '<div style="font-weight:bold; color:#f59e0b;">🏆 BEST LOSER PLAYOFF (' + round.name + ')</div>' : '<div style="font-weight:bold;">Match #' + m.id + '</div>'}
-                        ${getStatusBadgeHTML(matchStatus)}
-                    </div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:12px;">
-                        <div>
-                            <label>Date</label>
-                            <input type="text"
-                                value="${m.schedule.date ?? ""}"
-                                onchange="updateSchedule(${rIdx},${mIdx},'date',this.value)">
-                        </div>
-                        <div>
-                            <label>Time</label>
-                            <input type="text"
-                                value="${m.schedule.time ?? ""}"
-                                onchange="updateSchedule(${rIdx},${mIdx},'time',this.value)">
-                        </div>
-                        <div>
-                            <label>Location</label>
-                            <input type="text"
-                                value="${m.schedule.location ?? ""}"
-                                onchange="updateSchedule(${rIdx},${mIdx},'location',this.value)">
-                        </div>
-                    </div>
-
-                    <div class="score-row">
-                        <div>
-                            <label>${m.teamA.name}</label>
-                            <input type="number"
-                                value="${m.teamA.points ?? ""}"
-                                min="${CONSTANTS.MIN_SCORE}"
-                                max="${CONSTANTS.MAX_SCORE}"
-                                step="1"
-                                placeholder="${CONSTANTS.MIN_SCORE}-${CONSTANTS.MAX_SCORE} points"
-                                oninput="updateScores(${rIdx},${mIdx},'teamA',this.value)"
-                                aria-label="Score for ${m.teamA.name}">
-                        </div>
-
-                        <div class="vs-label">VS</div>
-
-                        <div>
-                            <label>${m.teamB.name}</label>
-                            <input type="number"
-                                value="${m.teamB.points ?? ""}"
-                                min="${CONSTANTS.MIN_SCORE}"
-                                max="${CONSTANTS.MAX_SCORE}"
-                                step="1"
-                                placeholder="${CONSTANTS.MIN_SCORE}-${CONSTANTS.MAX_SCORE} points"
-                                oninput="updateScores(${rIdx},${mIdx},'teamB',this.value)"
-                                aria-label="Score for ${m.teamB.name}">
-                        </div>
-                    </div>
-
-                    <div id="win-${rIdx}-${mIdx}" class="winner-box">
-                        🏆 Winner: ${m.winner ?? "Pending"}
-                    </div>
-                `;
-            }
-
-            container.appendChild(card);
+            container.appendChild(createMatchCard(m, rIdx, mIdx, isLocked));
         });
-        
-        // Add round management controls:
-        // - Full controls for last round (if not locked)
-        // - Delete button for any unlocked round
-        if (rIdx === currentData.rounds.length - 1 && !isLocked) {
-            // Last round gets full management controls
+
+        // Add round management controls for any editable (not locked) round
+        if (!isLocked) {
             addRoundManagementControls(container, round, rIdx);
-        } else if (!isLocked) {
-            // Non-last rounds get deletion controls only
-            addRoundDeletionControls(container, round, rIdx);
         }
+
+        // Add round deletion controls (Gap 1: XSS Remediation - Refactored)
+        // Check legacy or secure role? Using secure logic inside utility
+        addRoundDeletionControls(container, round, rIdx);
     });
-    
+
     // Update sidebar stats after rendering
     updateSidebarStats();
-    
+
     // Populate round filter dropdown
     populateRoundFilter();
-    
+
     // Initialize pagination
     initializePagination();
 }
@@ -923,10 +1309,18 @@ function renderForm() {
 function populateRoundFilter() {
     const roundFilter = document.getElementById("round-filter");
     if (!roundFilter || !currentData) return;
-    
-    // Keep "All Rounds" option and add rounds
-    roundFilter.innerHTML = '<option value="all">All Rounds</option>';
-    
+
+    // Clear existing options safely
+    while (roundFilter.firstChild) {
+        roundFilter.removeChild(roundFilter.firstChild);
+    }
+
+    // Add "All Rounds" option
+    const allOption = document.createElement("option");
+    allOption.value = "all";
+    allOption.textContent = "All Rounds";
+    roundFilter.appendChild(allOption);
+
     currentData.rounds.forEach((round, idx) => {
         const option = document.createElement("option");
         option.value = idx;
@@ -942,34 +1336,34 @@ function filterMatches() {
     const searchTerm = document.getElementById("match-search")?.value.toLowerCase() || "";
     const statusFilter = document.getElementById("status-filter")?.value || "all";
     const roundFilter = document.getElementById("round-filter")?.value || "all";
-    
+
     // Get all match cards and round dividers
     const cards = document.querySelectorAll(".match-card");
     const dividers = document.querySelectorAll(".round-divider");
-    
+
     let visibleCount = 0;
-    
+
     // Track which rounds have visible matches
     const roundsWithMatches = new Set();
-    
+
     cards.forEach((card) => {
         const roundIdx = parseInt(card.dataset.roundIdx);
         const teamAName = card.querySelector(".team-label:nth-of-type(1) strong")?.textContent.toLowerCase() || "";
         const teamBName = card.querySelector(".team-label:nth-of-type(2) strong")?.textContent.toLowerCase() || "";
-        
+
         // Get match status from card classes
         let matchStatus = "pending";
         if (card.classList.contains("locked")) matchStatus = "locked";
         else if (card.classList.contains("completed")) matchStatus = "completed";
         else if (card.classList.contains("in-progress")) matchStatus = "in-progress";
-        
+
         // Check filters
-        const matchesSearch = searchTerm === "" || 
-                            teamAName.includes(searchTerm) || 
-                            teamBName.includes(searchTerm);
+        const matchesSearch = searchTerm === "" ||
+            teamAName.includes(searchTerm) ||
+            teamBName.includes(searchTerm);
         const matchesStatus = statusFilter === "all" || matchStatus === statusFilter;
         const matchesRound = roundFilter === "all" || roundIdx === parseInt(roundFilter);
-        
+
         if (matchesSearch && matchesStatus && matchesRound) {
             card.style.display = "";
             roundsWithMatches.add(roundIdx);
@@ -978,7 +1372,7 @@ function filterMatches() {
             card.style.display = "none";
         }
     });
-    
+
     // Show/hide round dividers based on whether they have visible matches
     dividers.forEach((divider, idx) => {
         if (roundsWithMatches.has(idx)) {
@@ -987,11 +1381,11 @@ function filterMatches() {
             divider.style.display = "none";
         }
     });
-    
+
     // Show message if no matches found
     const matchesList = document.getElementById("matches-list");
     let noResultsMsg = document.getElementById("no-results-message");
-    
+
     if (visibleCount === 0 && matchesList) {
         if (!noResultsMsg) {
             noResultsMsg = document.createElement("div");
@@ -1008,10 +1402,10 @@ function filterMatches() {
     } else if (noResultsMsg) {
         noResultsMsg.style.display = "none";
     }
-    
+
     // Initialize pagination after filtering
     initializePagination();
-    
+
     if (CONFIG.debug) console.log(`🔍 Filter applied: ${visibleCount} matches visible`);
 }
 
@@ -1045,9 +1439,9 @@ function changePage(page) {
 function displayCurrentPage() {
     const startIdx = (currentPage - 1) * CONSTANTS.MATCHES_PER_PAGE;
     const endIdx = startIdx + CONSTANTS.MATCHES_PER_PAGE;
-    
+
     const matchCards = document.querySelectorAll('.match-card');
-    
+
     matchCards.forEach((card, idx) => {
         if (idx >= startIdx && idx < endIdx) {
             card.style.display = 'block';
@@ -1055,9 +1449,9 @@ function displayCurrentPage() {
             card.style.display = 'none';
         }
     });
-    
+
     updatePaginationControls();
-    
+
     // Scroll to top of matches list
     const matchesList = document.getElementById('matches-list');
     if (matchesList) {
@@ -1071,15 +1465,15 @@ function displayCurrentPage() {
 function updatePaginationControls() {
     const paginationContainer = document.getElementById('pagination-controls');
     if (!paginationContainer) return;
-    
+
     // Hide pagination if only one page
     if (totalPages <= 1) {
         paginationContainer.style.display = 'none';
         return;
     }
-    
+
     paginationContainer.style.display = 'flex';
-    
+
     let html = `
         <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} 
                 style="padding: 8px 16px; border-radius: 8px; border: 2px solid var(--border-color); 
@@ -1088,16 +1482,16 @@ function updatePaginationControls() {
         </button>
         <div style="display: flex; gap: 8px; align-items: center;">
     `;
-    
+
     // Show page numbers with ellipsis for many pages
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
+
     if (endPage - startPage < maxVisiblePages - 1) {
         startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-    
+
     if (startPage > 1) {
         html += `<button onclick="changePage(1)" style="padding: 8px 12px; border-radius: 8px; 
                         border: 2px solid var(--border-color); background: var(--card-bg); 
@@ -1106,7 +1500,7 @@ function updatePaginationControls() {
             html += `<span style="color: var(--text-muted);">...</span>`;
         }
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
         const isActive = i === currentPage;
         html += `
@@ -1120,7 +1514,7 @@ function updatePaginationControls() {
             </button>
         `;
     }
-    
+
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
             html += `<span style="color: var(--text-muted);">...</span>`;
@@ -1129,7 +1523,7 @@ function updatePaginationControls() {
                         border: 2px solid var(--border-color); background: var(--card-bg); 
                         color: var(--text-main); cursor: pointer;">${totalPages}</button>`;
     }
-    
+
     html += `
         </div>
         <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}
@@ -1138,11 +1532,11 @@ function updatePaginationControls() {
             Next →
         </button>
     `;
-    
+
     html += `<div style="margin-left: 16px; color: var(--text-muted); font-size: 14px;">
                 Page ${currentPage} of ${totalPages}
              </div>`;
-    
+
     paginationContainer.innerHTML = html;
 }
 
@@ -1154,10 +1548,10 @@ function initializePagination() {
     const visibleCount = Array.from(document.querySelectorAll('.match-card')).filter(card => {
         return card.style.display !== 'none';
     }).length;
-    
+
     totalPages = Math.ceil(visibleCount / CONSTANTS.MATCHES_PER_PAGE);
     currentPage = 1;
-    
+
     displayCurrentPage();
 }
 
@@ -1166,36 +1560,36 @@ function initializePagination() {
  */
 function updateSidebarStats() {
     if (!currentData) return;
-    
+
     // Grade Level
     document.getElementById("sidebar-grade").textContent = currentData.grade || "--";
-    
+
     // Total Rounds
     document.getElementById("sidebar-rounds").textContent = currentData.rounds?.length || 0;
-    
+
     // Count all matches across all rounds
     let totalMatches = 0;
     let completedMatches = 0;
     let qualifiedTeams = 0;
-    
+
     currentData.rounds.forEach(round => {
         if (round.matches) {
             totalMatches += round.matches.length;
             completedMatches += round.matches.filter(m => m.winner !== null && m.winner !== undefined && m.winner !== "").length;
-            
+
             // Only count qualified from last round
             if (round === currentData.rounds[currentData.rounds.length - 1]) {
                 qualifiedTeams = getQualifiedTeams(round).length;
             }
         }
     });
-    
+
     // Active Matches (total)
     document.getElementById("sidebar-matches").textContent = totalMatches;
-    
+
     // Completed Matches
     document.getElementById("sidebar-completed").textContent = `${completedMatches}/${totalMatches}`;
-    
+
     // Qualified Teams (from last round)
     document.getElementById("sidebar-qualified").textContent = qualifiedTeams;
 }
@@ -1204,37 +1598,66 @@ function updateSidebarStats() {
  * Add deletion controls for non-last rounds
  */
 function addRoundDeletionControls(container, round, rIdx) {
-    const controlsDiv = document.createElement("div");
-    controlsDiv.style.cssText = "background: #fef2f2; padding: 15px; border-radius: 12px; margin: 20px 0; border: 2px solid #fecaca;";
-    
-    const hasSubsequentRounds = rIdx < currentData.rounds.length - 1;
-    const subsequentCount = currentData.rounds.length - 1 - rIdx;
-    
-    let html = '<div style="font-weight: bold; font-size: 16px; margin-bottom: 10px; color: #991b1b;">⚠️ Round Management</div>';
-    
-    html += `<button onclick="cascadeDeleteRound(${rIdx})" 
-                    style="background: #ef4444; border: 2px solid #991b1b; width: 100%;">\n                🗑️ Delete This Round${hasSubsequentRounds ? ` (+${subsequentCount} subsequent)` : ''}\n            </button>`;
-    
-    if (hasSubsequentRounds) {
-        html += `<div style="font-size: 11px; color: #991b1b; margin-top: 8px; padding: 8px; background: #fee2e2; border-radius: 4px;">\n                ⚠️ Warning: This will cascade delete all rounds from ${round.name} onwards (${subsequentCount + 1} total)\n            </div>`;
+    const role = AdminSecurity.getRole();
+    if (role === ROLE_ABSOLUTE) {
+        // Use variables for Dark Mode compatibility
+        const controlsDiv = createEl("div", "", null, "background: var(--danger-bg); padding: 15px; border-radius: 12px; margin: 20px 0; border: 2px solid var(--danger-border);");
+
+        const hasSubsequentRounds = rIdx < currentData.rounds.length - 1;
+        const subsequentCount = currentData.rounds.length - 1 - rIdx;
+
+        const header = createEl("div", "", "⚠️ Round Management", "font-weight: bold; font-size: 16px; margin-bottom: 10px; color: var(--danger-text);");
+        controlsDiv.appendChild(header);
+
+        const btnText = `🗑️ Delete This Round${hasSubsequentRounds ? ` (+${subsequentCount} subsequent)` : ''}`;
+        const deleteBtn = createEl("button", "", btnText, "background: var(--danger); border: 2px solid var(--danger-text); width: 100%; color: white; padding: 8px; cursor: pointer; border-radius: 6px;");
+        deleteBtn.onclick = () => cascadeDeleteRound(rIdx);
+        controlsDiv.appendChild(deleteBtn);
+
+        if (hasSubsequentRounds) {
+            const warningText = `⚠️ Warning: This will cascade delete all rounds from ${round.name} onwards (${subsequentCount + 1} total)`;
+            const warning = createEl("div", "", warningText, "font-size: 11px; color: var(--danger-text); margin-top: 8px; padding: 8px; background: var(--danger-bg); border-radius: 4px; border: 1px solid var(--danger-border);");
+            controlsDiv.appendChild(warning);
+        }
+
+        container.appendChild(controlsDiv);
     }
-    
-    controlsDiv.innerHTML = html;
-    container.appendChild(controlsDiv);
 }
 
 /**
  * Add management controls for creating best loser and generating next round
  */
 function addRoundManagementControls(container, round, rIdx) {
-    const controlsDiv = document.createElement("div");
-    controlsDiv.style.cssText = "background: white; padding: 20px; border-radius: 12px; margin: 20px 0; border: 2px dashed #cbd5e1;";
-    
+    // Always define controlsDiv before use
+    const controlsDiv = createEl("div", "", null, "background: var(--card-bg); padding: 20px; border-radius: 12px; margin: 20px 0; border: 2px dashed var(--border-color); box-shadow: var(--card-shadow);");
+
+    // Show switch mode banner if active
+    if (switchModeActive) {
+        let banner = document.getElementById("switch-mode-banner");
+        if (!banner) {
+            banner = createEl("div");
+            banner.id = "switch-mode-banner";
+            banner.style.cssText = "background:#0d47a1;color:#fff;padding:12px 20px;margin-bottom:18px;border-radius:8px;font-weight:bold;font-size:16px;text-align:center; display:flex; align-items:center; justify-content:center; gap:15px;";
+
+            const textSpan = createEl("span", "", "⚠️ Structural Switch Mode Active — Only unplayed teams can be swapped.");
+            banner.appendChild(textSpan);
+
+            const exitBtn = createEl("button", "", "Exit Switch Mode", "background:#64748b;color:#fff;padding:6px 16px;border-radius:8px;border:none;cursor:pointer;");
+            exitBtn.onclick = exitTeamSwitchMode;
+            banner.appendChild(exitBtn);
+
+            container.parentNode.insertBefore(banner, container);
+        }
+    } else {
+        const banner = document.getElementById("switch-mode-banner");
+        if (banner) banner.remove();
+    }
+
     const roundComplete = isRoundComplete(round);
     const qualified = getQualifiedTeams(round);
     const hasOddTeams = qualified.length % 2 !== 0;
     const hasBestLoser = hasBestLoserMatch(round);
-    
+
     // Debug logging
     if (CONFIG.debug) {
         console.log("=== ROUND MANAGEMENT DEBUG ===");
@@ -1243,65 +1666,55 @@ function addRoundManagementControls(container, round, rIdx) {
         console.log("Matches:", round.matches.map(m => ({ id: m.id, winner: m.winner })));
         console.log("Qualified Teams:", qualified);
     }
-    
-    let html = '<div style="font-weight: bold; font-size: 18px; margin-bottom: 15px; color: var(--primary);">📋 Round Management <span style="font-size: 10px; color: #64748b;">(v2.1.0)</span></div>';
-    
+
+    const header = createEl("div", "", "📋 Round Management (v2.1.0)", "font-weight: bold; font-size: 18px; margin-bottom: 15px; color: var(--primary);");
+    controlsDiv.appendChild(header);
+
     // Status info
     const completedMatches = round.matches.filter(m => m.winner !== null && m.winner !== undefined && m.winner !== "").length;
-    if (CONFIG.debug) console.log("Completed Matches Count:", completedMatches);
-    html += `<div style="margin-bottom: 15px; font-size: 14px;">`;
-    html += `<div>✅ Completed Matches: ${completedMatches} / ${round.matches.length}</div>`;
-    html += `<div>🏆 Qualified Teams: ${qualified.length}${hasOddTeams ? ' (ODD - Need Best Loser!)' : ' (EVEN)'}</div>`;
-    html += `</div>`;
-    
+    const infoDiv = createEl("div", "", null, "margin-bottom: 15px; font-size: 14px;");
+    const info1 = createEl("div", "", `✅ Completed Matches: ${completedMatches} / ${round.matches.length}`);
+    const info2 = createEl("div", "", `🏆 Qualified Teams: ${qualified.length}${hasOddTeams ? ' (ODD - Need Best Loser!)' : ' (EVEN)'}`);
+    infoDiv.appendChild(info1);
+    infoDiv.appendChild(info2);
+    controlsDiv.appendChild(infoDiv);
+
     // Best Loser Button
     if (roundComplete && hasOddTeams && !hasBestLoser) {
-        html += `<button onclick="showBestLoserCreator(${rIdx})" style="margin-bottom: 10px; background: #f59e0b;">
-            🏆 Create Best Loser Playoff
-        </button>`;
+        const blBtn = createEl("button", "", "🏆 Create Best Loser Playoff", "margin-bottom: 10px; background: #f59e0b; width:100%; padding:10px; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;");
+        blBtn.onclick = () => showBestLoserCreator(rIdx);
+        controlsDiv.appendChild(blBtn);
     } else if (hasBestLoser) {
-        html += `<div style="padding: 10px; background: #fef3c7; border-radius: 6px; margin-bottom: 10px;">
-            ✅ Best Loser Playoff exists
-        </div>`;
+        const blStatus = createEl("div", "", "✅ Best Loser Playoff exists", "padding: 10px; background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); border-radius: 6px; margin-bottom: 10px;");
+        controlsDiv.appendChild(blStatus);
     }
-    
+
     // Generate Next Round Button
     if (canGenerateNextRound()) {
-        html += `<button onclick="showRoundGenerator(${rIdx})" style="background: var(--success); margin-bottom: 10px;">
-            ➕ Generate Next Round
-        </button>`;
+        const genBtn = createEl("button", "", "➕ Generate Next Round", "background: var(--success); margin-bottom: 10px; width:100%; padding:10px; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;");
+        genBtn.onclick = () => showRoundGenerator(rIdx);
+        controlsDiv.appendChild(genBtn);
     } else if (!roundComplete) {
-        html += `<div style="padding: 10px; background: #fee2e2; border-radius: 6px; color: #991b1b; margin-bottom: 10px;">
-            ⚠️ Complete all matches before generating next round
-        </div>`;
+        const warning = createEl("div", "", "⚠️ Complete all matches before generating next round", "padding: 10px; background: var(--info-bg); border: 1px solid var(--info-border); border-radius: 6px; color: var(--info-text); margin-bottom: 10px;");
+        controlsDiv.appendChild(warning);
     }
-    
+
     // End Tournament Button (only if round is complete and this is truly the final round)
     if (roundComplete && canGenerateNextRound() && qualified.length <= 4) {
-        html += `<button onclick="endTournament(${rIdx})" style="background: #7c3aed; margin-top: 10px;">
-            🏁 End Tournament & Lock Final Round
-        </button>`;
+        const endBtn = createEl("button", "", "🏁 End Tournament & Lock Final Round", "background: #7c3aed; margin-top: 10px; width:100%; padding:10px; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;");
+        endBtn.onclick = () => endTournament(rIdx);
+        controlsDiv.appendChild(endBtn);
     }
-    
-    // Delete Round Button (cascade delete) - Only for unlocked rounds
-    if (round.status !== "locked") {
-        const hasSubsequentRounds = rIdx < currentData.rounds.length - 1;
-        const subsequentCount = currentData.rounds.length - 1 - rIdx;
-        
-        html += `<button onclick="cascadeDeleteRound(${rIdx})" 
-                        style="background: #ef4444; margin-top: 10px; border: 2px solid #991b1b;">
-            🗑️ Delete This Round${hasSubsequentRounds ? ` (+${subsequentCount} subsequent)` : ''}
-        </button>`;
-        
-        if (hasSubsequentRounds) {
-            html += `<div style="font-size: 11px; color: #991b1b; margin-top: 5px; padding: 5px; background: #fee2e2; border-radius: 4px;">
-                ⚠️ Warning: This will delete all rounds from ${round.name} onwards
-            </div>`;
-        }
-    }
-    
-    controlsDiv.innerHTML = html;
+
     container.appendChild(controlsDiv);
+
+    // Add Team Switch Mode button for absolute admin only
+    const role = AdminSecurity.getRole();
+    if (role === ROLE_ABSOLUTE && !switchModeActive) {
+        const switchBtn = createEl("button", "", "🔄 Enable Team Switch Mode", "background:#0d47a1;color:#fff;margin-top:10px;width:100%;padding:10px;border:none;border-radius:6px;cursor:pointer;font-weight:bold;");
+        switchBtn.onclick = () => activateTeamSwitchMode(rIdx);
+        controlsDiv.appendChild(switchBtn);
+    }
 }
 
 /**
@@ -1309,72 +1722,84 @@ function addRoundManagementControls(container, round, rIdx) {
  * @param {number} rIdx - Index of the round to delete
  */
 function cascadeDeleteRound(rIdx) {
+    // Structural action confirmation and logging
+    if (!confirm("You are performing a structural override. Continue?")) {
+        showStatus("Structural action cancelled.", "#64748b");
+        return;
+    }
+    logStructuralAction("Cascade Delete Round", { admin: currentUser, roundIndex: rIdx, timestamp: new Date().toISOString() });
+    // Guard: Only absolute admin can perform structural actions
+    const role = AdminSecurity.getRole();
+    if (role !== ROLE_ABSOLUTE) {
+        alert("Permission Denied: Only the absolute admin can perform this structural action.");
+        return;
+    }
     const round = currentData.rounds[rIdx];
     const totalRounds = currentData.rounds.length;
     const subsequentCount = totalRounds - rIdx;
-    
+
     // Check if round is locked
     if (round.status === "locked") {
         alert("Cannot delete a locked round. Locked rounds are finalized and cannot be modified.");
         return;
     }
-    
+
     // Gather information for confirmation
     const roundsToDelete = currentData.rounds.slice(rIdx);
     const totalMatchesToDelete = roundsToDelete.reduce((sum, r) => sum + (r.matches?.length || 0), 0);
     const bestLoserMatchesToDelete = roundsToDelete.reduce((sum, r) => {
         return sum + (r.matches?.filter(m => m.type === "best_loser").length || 0);
     }, 0);
-    
+
     // Build confirmation message
     let confirmMsg = `⚠️ CRITICAL DELETION WARNING ⚠️\n\n`;
     confirmMsg += `You are about to DELETE:\n`;
     confirmMsg += `• ${subsequentCount} round${subsequentCount > 1 ? 's' : ''} (${roundsToDelete.map(r => r.name).join(', ')})\n`;
     confirmMsg += `• ${totalMatchesToDelete} match${totalMatchesToDelete !== 1 ? 'es' : ''} with all scores and results\n`;
-    
+
     if (bestLoserMatchesToDelete > 0) {
         confirmMsg += `• ${bestLoserMatchesToDelete} Best Loser match${bestLoserMatchesToDelete !== 1 ? 'es' : ''}\n`;
     }
-    
+
     confirmMsg += `\nThis action will:\n`;
     confirmMsg += `1. Permanently delete all listed rounds\n`;
     confirmMsg += `2. Remove all matches and scores from those rounds\n`;
     confirmMsg += `3. Remove all Best Loser matches in those rounds\n`;
     confirmMsg += `4. Cannot be undone (Undo history will be cleared)\n\n`;
     confirmMsg += `Are you sure you want to proceed?`;
-    
+
     // First confirmation
     const firstConfirm = confirm(confirmMsg);
     if (!firstConfirm) {
         showStatus("Round deletion cancelled", "#64748b");
         return;
     }
-    
+
     // Second confirmation - require typing
     const verification = prompt(
         `FINAL CONFIRMATION\n\n` +
         `This will permanently delete ${subsequentCount} round(s) and ${totalMatchesToDelete} match(es).\n\n` +
         `Type "CONFIRM REVERT" (all caps, exactly as shown) to proceed:`
     );
-    
+
     if (verification !== "CONFIRM REVERT") {
         showStatus("Round deletion cancelled - verification failed", "#ef4444");
         return;
     }
-    
+
     // Perform cascade deletion
     if (CONFIG.debug) {
         console.log("=== CASCADE DELETE INITIATED ===");
         console.log("Deleting rounds from index:", rIdx);
         console.log("Rounds to delete:", roundsToDelete.map(r => r.name));
     }
-    
+
     // Clear undo/redo history for safety
     resetHistory();
-    
+
     // Delete all rounds from rIdx onwards
     currentData.rounds = currentData.rounds.slice(0, rIdx);
-    
+
     // Unlock the previous round if it exists and is locked
     // This allows editing and regenerating the next round
     let unlockedRound = null;
@@ -1384,13 +1809,13 @@ function cascadeDeleteRound(rIdx) {
         if (previousRound && previousRound.status === "locked") {
             previousRound.status = "active";
             unlockedRound = previousRound.name;
-            
+
             // Remove Best Loser matches from the unlocked round
             // Scores might be edited, so Best Loser needs to be recalculated
             const originalMatchCount = previousRound.matches.length;
             previousRound.matches = previousRound.matches.filter(m => m.type !== "best_loser");
             removedBestLoser = previousRound.matches.length < originalMatchCount;
-            
+
             if (CONFIG.debug) {
                 console.log(`Unlocked ${previousRound.name} after cascade deletion`);
                 if (removedBestLoser) {
@@ -1399,7 +1824,7 @@ function cascadeDeleteRound(rIdx) {
             }
         }
     }
-    
+
     // If we deleted all rounds, reinitialize with Round 1
     if (currentData.rounds.length === 0) {
         currentData.rounds = [{
@@ -1409,7 +1834,7 @@ function cascadeDeleteRound(rIdx) {
             matches: []
         }];
     }
-    
+
     // Log action (for audit trail)
     if (!currentData.auditLog) currentData.auditLog = [];
     currentData.auditLog.push({
@@ -1424,11 +1849,11 @@ function cascadeDeleteRound(rIdx) {
             removedBestLoserFromUnlocked: removedBestLoser
         }
     });
-    
+
     // Re-render and update
     renderForm();
     updateSidebarStats();
-    
+
     // Show status message
     let statusMsg = `🗑️ Deleted ${subsequentCount} round(s) and ${totalMatchesToDelete} match(es).`;
     if (unlockedRound) {
@@ -1439,7 +1864,7 @@ function cascadeDeleteRound(rIdx) {
         statusMsg += `.`;
     }
     statusMsg += ` Save to persist changes.`;
-    
+
     showStatus(statusMsg, "#ef4444");
 }
 
@@ -1447,20 +1872,32 @@ function cascadeDeleteRound(rIdx) {
  * End tournament and lock the final round
  */
 function endTournament(rIdx) {
+    // Structural action confirmation and logging
+    if (!confirm("You are performing a structural override. Continue?")) {
+        showStatus("Structural action cancelled.", "#64748b");
+        return;
+    }
+    logStructuralAction("End Tournament", { admin: currentUser, roundIndex: rIdx, timestamp: new Date().toISOString() });
+    // Guard: Only absolute admin can perform structural actions
+    const role = AdminSecurity.getRole();
+    if (role !== ROLE_ABSOLUTE) {
+        alert("Permission Denied: Only the absolute admin can perform this structural action.");
+        return;
+    }
     const confirmed = confirm("Are you sure you want to end the tournament? This will lock the final round and prevent further changes.");
-    
+
     if (!confirmed) return;
-    
+
     saveHistorySnapshot();
 
     // Lock the final round
     currentData.rounds[rIdx].status = "locked";
-    
+
     // Optionally add tournament completion status
     if (!currentData.tournamentStatus) {
         currentData.tournamentStatus = "completed";
     }
-    
+
     renderForm();
     updateSidebarStats();
     showStatus("🏁 Tournament ended! Final round locked. Save to publish.", "#7c3aed");
@@ -1484,7 +1921,7 @@ function updateSchedule(rIdx, mIdx, field, value) {
  */
 function updateScores(rIdx, mIdx, team, val) {
     const m = currentData.rounds[rIdx].matches[mIdx];
-    
+
     // Get the input element for visual feedback
     const inputElement = event?.target;
 
@@ -1499,12 +1936,12 @@ function updateScores(rIdx, mIdx, team, val) {
     if (val === "") {
         if (team === "teamA") m.teamA.points = null;
         else m.teamB.points = null;
-        
+
         // Remove invalid class when cleared
         if (inputElement) inputElement.classList.remove("invalid");
     } else {
         const pts = parseInt(val);
-        
+
         // Validate input
         if (isNaN(pts)) {
             if (inputElement) {
@@ -1514,7 +1951,7 @@ function updateScores(rIdx, mIdx, team, val) {
             showStatus("⚠️ Please enter a valid number", "#f59e0b");
             return;
         }
-        
+
         if (pts < CONSTANTS.MIN_SCORE || pts > CONSTANTS.MAX_SCORE) {
             if (inputElement) {
                 inputElement.classList.add("invalid");
@@ -1523,10 +1960,10 @@ function updateScores(rIdx, mIdx, team, val) {
             showStatus(`⚠️ Score must be between ${CONSTANTS.MIN_SCORE} and ${CONSTANTS.MAX_SCORE}`, "#f59e0b");
             return;
         }
-        
+
         // Valid input - remove invalid class and save
         if (inputElement) inputElement.classList.remove("invalid");
-        
+
         if (team === "teamA") m.teamA.points = pts;
         else m.teamB.points = pts;
     }
@@ -1545,9 +1982,50 @@ function updateScores(rIdx, mIdx, team, val) {
     const winBox = document.getElementById(`win-${rIdx}-${mIdx}`);
     if (winBox)
         winBox.innerText = `🏆 Winner: ${m.winner ?? "Pending"}`;
-    
+
     // Update sidebar stats when scores change
     updateSidebarStats();
+}
+
+// ============================================
+// TEAM SWITCH MODE FUNCTIONS (GLOBAL)
+// ============================================
+
+/**
+ * Activate team switch mode with token reconfirmation
+ * @param {number} rIdx - Round index
+ */
+async function activateTeamSwitchMode(rIdx) {
+    if (AdminSecurity.getRole() !== ROLE_ABSOLUTE) return;
+
+    const code = prompt("Enter your structural authentication password to enable team switching:");
+    if (!code) {
+        return; // User cancelled
+    }
+
+    // SHA-256 hash of 'jammeh' (hex): 45888f0c28b9e1007b74238f0dd90312efe9b3c4298957c80079845ed7725384
+    const expectedHash = "45888f0c28b9e1007b74238f0dd90312efe9b3c4298957c80079845ed7725384";
+    const codeHash = await hashString(code);
+
+    if (codeHash !== expectedHash) {
+        alert("❌ Incorrect password. Access denied.");
+        return;
+    }
+
+    switchModeActive = true;
+    unlockedTeams = [];
+    switchModeRoundIdx = rIdx;
+    renderForm();
+}
+
+/**
+ * Exit team switch mode
+ */
+function exitTeamSwitchMode() {
+    switchModeActive = false;
+    unlockedTeams = [];
+    switchModeRoundIdx = null;
+    renderForm();
 }
 
 /**
@@ -1556,9 +2034,15 @@ function updateScores(rIdx, mIdx, team, val) {
  * @throws {Error} GitHub API errors or network failures
  */
 async function saveToGitHub() {
+    // Layer 6: Revalidate Integrity before Write in Admin Mode
+    if (!verifyIntegrity()) {
+        alert("⛔ Security Violation: Runtime integrity check failed. Action blocked.");
+        return;
+    }
+
     const path = `data/competition-grade${currentData.grade}.json`;
     const saveBtn = document.querySelector('button[onclick="saveToGitHub()"]');
-    
+
     showStatus("Saving Changes...", "#f59e0b");
     if (saveBtn) setButtonLoading(saveBtn, true);
 
@@ -1571,7 +2055,7 @@ async function saveToGitHub() {
             {
                 method: "PUT",
                 headers: {
-                    Authorization: `token ${githubToken}`,
+                    Authorization: `token ${sessionStorage.getItem("githubToken")}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
@@ -1584,17 +2068,17 @@ async function saveToGitHub() {
 
         showStatus("✅ Saved Successfully!", "#16a34a");
         updateSidebarStats();
-        
+
         // Clear cache for this grade to ensure fresh data on next load
         const cacheKey = `grade${currentData.grade}`;
         localStorage.removeItem(CONSTANTS.CACHE_KEY_PREFIX + cacheKey);
         if (CONFIG.debug) console.log(`🗑️ Cleared cache for ${cacheKey}`);
-        
+
         // Reload with force refresh to get updated SHA
         setTimeout(() => loadMatches(true), 1500);
     } catch (e) {
         showStatus(`❌ ${e.message}`, "#ef4444");
-        
+
         // Show detailed error message
         let errorDetails = e.message;
         if (e.status === 409) {
@@ -1620,24 +2104,24 @@ async function saveToGitHub() {
 function showBestLoserCreator(rIdx) {
     const round = currentData.rounds[rIdx];
     const losers = getLosersSorted(round);
-    
+
     if (losers.length < 2) {
         alert("Not enough losers to create a Best Loser playoff.");
         return;
     }
-    
+
     // Create overlay
     const overlay = document.createElement("div");
     overlay.id = "modal-backdrop";
     overlay.className = "modal-overlay";
     overlay.onclick = closeBestLoserModal;
-    
+
     // Create modal
     const modal = document.createElement("div");
     modal.id = "best-loser-modal";
     modal.className = "modal-container";
     modal.onclick = (e) => e.stopPropagation(); // Prevent close when clicking inside
-    
+
     let html = `
         <div class="modal-header">
             <h3 class="modal-title">🏆 Create Best Loser Playoff</h3>
@@ -1664,14 +2148,14 @@ function showBestLoserCreator(rIdx) {
             <button onclick="closeBestLoserModal()" style="background: var(--danger);">❌ Cancel</button>
         </div>
     `;
-    
+
     modal.innerHTML = html;
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
-    
+
     // Setup iOS keyboard handling
     setupIOSKeyboardHandling();
-    
+
     // Add duplicate prevention
     document.getElementById("loser-a").onchange = () => updateLoserDropdowns();
     document.getElementById("loser-b").onchange = () => updateLoserDropdowns();
@@ -1680,17 +2164,17 @@ function showBestLoserCreator(rIdx) {
 function updateLoserDropdowns() {
     const selectA = document.getElementById("loser-a");
     const selectB = document.getElementById("loser-b");
-    
+
     if (!selectA || !selectB) return;
-    
+
     const valueA = selectA.value;
     const valueB = selectB.value;
-    
+
     // Disable selected team in other dropdown
     Array.from(selectB.options).forEach(opt => {
         opt.disabled = opt.value === valueA && opt.value !== "";
     });
-    
+
     Array.from(selectA.options).forEach(opt => {
         opt.disabled = opt.value === valueB && opt.value !== "";
     });
@@ -1715,30 +2199,30 @@ function closeRoundGenModal() {
 function createBestLoserMatch(rIdx) {
     const teamA = document.getElementById("loser-a").value;
     const teamB = document.getElementById("loser-b").value;
-    
+
     if (!teamA || !teamB) {
         alert("Please select both teams.");
         return;
     }
-    
+
     if (teamA === teamB) {
         alert("Cannot select the same team twice.");
         return;
     }
-    
+
     const round = currentData.rounds[rIdx];
-    
+
     // Safety check: prevent duplicate Best Loser matches
     if (hasBestLoserMatch(round)) {
         alert("This round already has a Best Loser match. Please delete the existing one first (use Undo) or complete it.");
         return;
     }
-    
+
     saveHistorySnapshot();
-    
+
     // Get next match ID
     const maxId = Math.max(...round.matches.map(m => m.id || 0));
-    
+
     // Create best loser match
     const bestLoserMatch = {
         id: maxId + 1,
@@ -1752,10 +2236,10 @@ function createBestLoserMatch(rIdx) {
         teamB: { name: teamB, points: null },
         winner: null
     };
-    
+
     // Add to round
     round.matches.push(bestLoserMatch);
-    
+
     closeBestLoserModal();
     renderForm();
     updateSidebarStats();
@@ -1772,40 +2256,104 @@ let pairingState = { teams: [], usedTeams: new Set(), matches: [] };
  * Show UI for generating next round
  */
 function showRoundGenerator(rIdx) {
+    // Structural action confirmation and logging
+    if (!confirm("You are performing a structural override. Continue?")) {
+        showStatus("Structural action cancelled.", "#64748b");
+        return;
+    }
+    logStructuralAction("Show Round Generator", { admin: currentUser, roundIndex: rIdx, timestamp: new Date().toISOString() });
+    // Log structural actions to console (optionally extend to persistent log)
+    function logStructuralAction(action, details) {
+        if (CONFIG.debug) {
+            console.log(`[STRUCTURAL ACTION] ${action}`, details);
+        }
+        // Persistent log in localStorage
+        try {
+            const logKey = 'ksss_structural_action_log';
+            const log = JSON.parse(localStorage.getItem(logKey) || '[]');
+            log.push({ action, ...details });
+            localStorage.setItem(logKey, JSON.stringify(log));
+        } catch (e) {
+            if (CONFIG.debug) console.warn('Failed to persist structural action log:', e);
+        }
+    }
+
+    // Show structural action log in a modal
+    function showStructuralActionLog() {
+        try {
+            const logKey = 'ksss_structural_action_log';
+            const log = JSON.parse(localStorage.getItem(logKey) || '[]');
+            let html = '<h3>📝 Structural Action Log</h3>';
+            if (log.length === 0) {
+                html += '<p style="color:#64748b;">No structural actions recorded yet.</p>';
+            } else {
+                html += '<ul style="max-height:300px;overflow-y:auto;padding-left:18px;">';
+                for (const entry of log.reverse()) {
+                    html += `<li><b>${entry.action}</b> by <span style="color:#0d47a1;">${entry.admin}</span> <span style="color:#64748b;">[${entry.timestamp}]</span></li>`;
+                }
+                html += '</ul>';
+            }
+            html += '<button onclick="closeStructuralLogModal()" style="margin-top:15px;background:#64748b;color:#fff;padding:8px 18px;border-radius:8px;">Close</button>';
+            const modal = document.createElement('div');
+            modal.id = 'structural-log-modal';
+            modal.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:30px;z-index:9999;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.25);min-width:320px;max-width:90vw;';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+            const backdrop = document.createElement('div');
+            backdrop.id = 'structural-log-backdrop';
+            backdrop.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:9998;';
+            backdrop.onclick = closeStructuralLogModal;
+            document.body.appendChild(backdrop);
+        } catch (e) {
+            alert('Failed to load structural action log.');
+        }
+    }
+    function closeStructuralLogModal() {
+        const modal = document.getElementById('structural-log-modal');
+        const backdrop = document.getElementById('structural-log-backdrop');
+        if (modal) modal.remove();
+        if (backdrop) backdrop.remove();
+    }
+    // Guard: Only absolute admin can perform structural actions
+    const role = currentAdminRole || sessionStorage.getItem("currentAdminRole");
+    if (role !== ROLE_ABSOLUTE) {
+        alert("Permission Denied: Only the absolute admin can perform this structural action.");
+        return;
+    }
     const round = currentData.rounds[rIdx];
     const qualified = getQualifiedTeams(round);
     const suggestedMatches = qualified.length / 2;
-    
+
     const container = document.getElementById("matches-list");
     const modal = document.createElement("div");
     modal.id = "round-gen-modal";
     modal.style.cssText = "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 3000; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;";
-    
+
     let html = '<h3 style="margin-top: 0; color: var(--primary);">➕ Generate Next Round</h3>';
     html += `<p style="font-size: 14px; color: #64748b;">${qualified.length} teams qualified. Suggested: ${suggestedMatches} matches.</p>`;
-    
+
     html += `<div style="margin: 20px 0;">
         <label>Number of Matches:</label>
         <input type="number" id="num-matches" value="${suggestedMatches}" min="1" max="${suggestedMatches}" style="margin-top: 5px;">
         <div style="font-size: 12px; color: #64748b; margin-top: 5px;">Must pair all ${qualified.length} teams</div>
     </div>`;
-    
+
     html += `<div style="display: flex; gap: 10px; margin-top: 20px;">
         <button onclick="startPairing(${rIdx})" style="flex: 1; background: var(--success);">✅ Start Pairing</button>
         <button onclick="closeRoundGenModal()" style="flex: 1; background: #ef4444;">❌ Cancel</button>
     </div>`;
-    
+
     modal.innerHTML = html;
-    
+
     // Add backdrop
     const backdrop = document.createElement("div");
     backdrop.id = "modal-backdrop";
     backdrop.style.cssText = "position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2999;";
     backdrop.onclick = closeRoundGenModal;
-    
+
     document.body.appendChild(backdrop);
     document.body.appendChild(modal);
-    
+
     // Setup iOS keyboard handling
     setupIOSKeyboardHandling();
 }
@@ -1825,12 +2373,12 @@ function startPairing(rIdx) {
     const round = currentData.rounds[rIdx];
     const qualified = getQualifiedTeams(round);
     const numMatches = parseInt(document.getElementById("num-matches").value);
-    
+
     if (numMatches * 2 !== qualified.length) {
         alert(`Invalid number of matches. ${qualified.length} teams require exactly ${qualified.length / 2} matches.`);
         return;
     }
-    
+
     // Initialize pairing state
     pairingState = {
         teams: qualified,
@@ -1838,7 +2386,7 @@ function startPairing(rIdx) {
         matches: [],
         sourceRoundIdx: rIdx
     };
-    
+
     showPairingUI(numMatches);
 }
 
@@ -1847,7 +2395,7 @@ function startPairing(rIdx) {
  */
 function showPairingUI(numMatches) {
     const modal = document.getElementById("round-gen-modal");
-    
+
     let html = `
         <div class="modal-header">
             <h3 class="modal-title">🎯 Manual Pairing</h3>
@@ -1855,7 +2403,7 @@ function showPairingUI(numMatches) {
         </div>
         <div class="modal-body">
             <div id="pairing-container">`;
-    
+
     for (let i = 0; i < numMatches; i++) {
         html += `
             <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
@@ -1871,7 +2419,7 @@ function showPairingUI(numMatches) {
                 </div>
             </div>`;
     }
-    
+
     html += `
             </div>
         </div>
@@ -1880,9 +2428,9 @@ function showPairingUI(numMatches) {
             <button onclick="closeRoundGenModal()" style="background: var(--danger);">❌ Cancel</button>
         </div>
     `;
-    
+
     modal.innerHTML = html;
-    
+
     // Initialize dropdown state after rendering (wait for DOM to update)
     setTimeout(() => {
         console.log("Initializing pairing dropdowns...");
@@ -1980,22 +2528,22 @@ function updatePairingDropdowns() {
  */
 function finalizePairing(numMatches) {
     const matches = [];
-    
+
     // Collect all pairings
     for (let i = 0; i < numMatches; i++) {
         const teamA = document.getElementById(`match-${i}-a`).value;
         const teamB = document.getElementById(`match-${i}-b`).value;
-        
+
         if (!teamA || !teamB) {
             alert(`Please complete all pairings. Match ${i + 1} is incomplete.`);
             return;
         }
-        
+
         if (teamA === teamB) {
             alert(`Match ${i + 1}: Cannot pair a team with itself.`);
             return;
         }
-        
+
         matches.push({
             id: i + 1,
             type: "normal",
@@ -2009,19 +2557,19 @@ function finalizePairing(numMatches) {
             winner: null
         });
     }
-    
+
     // Verify all teams are used
     const usedTeams = new Set();
     matches.forEach(m => {
         usedTeams.add(m.teamA.name);
         usedTeams.add(m.teamB.name);
     });
-    
+
     if (usedTeams.size !== pairingState.teams.length) {
         alert("All qualified teams must be paired exactly once.");
         return;
     }
-    
+
     // Two-step confirmation before locking round
     const currentRoundName = currentData.rounds[pairingState.sourceRoundIdx].name;
     const confirmed = confirm(
@@ -2032,23 +2580,23 @@ function finalizePairing(numMatches) {
         `Are you absolutely sure you want to proceed?\n\n` +
         `Click OK to continue to final confirmation.`
     );
-    
+
     if (!confirmed) {
         showStatus("Round generation cancelled", "#64748b");
         return;
     }
-    
+
     // Second confirmation - require typing
     const verification = prompt(
         `FINAL CONFIRMATION\n\n` +
         `Type "CONFIRM" (all caps) to lock ${currentRoundName} and create the new round:`
     );
-    
+
     if (verification !== "CONFIRM") {
         showStatus("Round generation cancelled - verification failed", "#ef4444");
         return;
     }
-    
+
     saveHistorySnapshot();
 
     // Create new round
@@ -2059,13 +2607,13 @@ function finalizePairing(numMatches) {
         status: "active",
         matches: matches
     };
-    
+
     // Lock previous round
     currentData.rounds[pairingState.sourceRoundIdx].status = "locked";
-    
+
     // Add new round
     currentData.rounds.push(newRound);
-    
+
     closeRoundGenModal();
     renderForm();
     updateSidebarStats();
@@ -2085,10 +2633,10 @@ function exportToCSV() {
         alert("No data loaded. Please load tournament data first.");
         return;
     }
-    
+
     // CSV Headers
     let csv = "Round,Match ID,Team A,Score A,Team B,Score B,Winner,Date,Time,Location,Status\n";
-    
+
     // Add data rows
     currentData.rounds.forEach((round) => {
         round.matches.forEach((match) => {
@@ -2108,7 +2656,7 @@ function exportToCSV() {
             csv += row.join(",") + "\n";
         });
     });
-    
+
     // Create download link
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -2120,7 +2668,7 @@ function exportToCSV() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     showStatus("✅ CSV exported successfully!", "#16a34a");
     if (CONFIG.debug) console.log("📊 CSV export completed");
 }
@@ -2134,15 +2682,15 @@ function exportToPDF() {
         alert("No data loaded. Please load tournament data first.");
         return;
     }
-    
+
     // Create a new window with print-friendly content
     const printWindow = window.open("", "_blank", "width=800,height=600");
-    
+
     if (!printWindow) {
         alert("Pop-up blocked! Please allow pop-ups for this site to export PDF.");
         return;
     }
-    
+
     // Generate HTML content for PDF
     let html = `
     <!DOCTYPE html>
@@ -2264,12 +2812,12 @@ function exportToPDF() {
         <h1>🏆 KSSS Mathematics Quiz Competition</h1>
         <div class="header-info">
             <strong>Grade ${currentData.grade} Tournament Report</strong><br>
-            Generated on: ${new Date().toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            })}
+            Generated on: ${new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    })}
         </div>
         
         <div class="summary-box">
@@ -2283,13 +2831,13 @@ function exportToPDF() {
             </div>
             <div class="summary-item">
                 <div class="summary-label">Completed Matches</div>
-                <div class="summary-value">${currentData.rounds.reduce((sum, r) => 
-                    sum + r.matches.filter(m => m.winner && m.winner !== "Pending").length, 0
-                )}</div>
+                <div class="summary-value">${currentData.rounds.reduce((sum, r) =>
+        sum + r.matches.filter(m => m.winner && m.winner !== "Pending").length, 0
+    )}</div>
             </div>
         </div>
     `;
-    
+
     // Add each round
     currentData.rounds.forEach((round) => {
         html += `
@@ -2309,11 +2857,11 @@ function exportToPDF() {
                 </thead>
                 <tbody>
         `;
-        
+
         round.matches.forEach((match) => {
             const isPending = !match.winner || match.winner === "Pending";
             const winnerClass = isPending ? "pending-cell" : "winner-cell";
-            
+
             html += `
                     <tr>
                         <td><strong>#${match.id}</strong>${match.type === "best_loser" ? " 🏆" : ""}</td>
@@ -2326,14 +2874,14 @@ function exportToPDF() {
                     </tr>
             `;
         });
-        
+
         html += `
                 </tbody>
             </table>
         </div>
         `;
     });
-    
+
     html += `
         <div class="footer">
             KSSS Mathematics Quiz Competition - Grade ${currentData.grade}<br>
@@ -2345,17 +2893,17 @@ function exportToPDF() {
     </body>
     </html>
     `;
-    
+
     printWindow.document.write(html);
     printWindow.document.close();
-    
+
     // Automatically open print dialog after content loads
-    printWindow.onload = function() {
+    printWindow.onload = function () {
         setTimeout(() => {
             printWindow.print();
         }, 250);
     };
-    
+
     showStatus("✅ PDF report opened in new window", "#16a34a");
     if (CONFIG.debug) console.log("📄 PDF export window opened");
 }
@@ -2376,3 +2924,44 @@ function showStatus(text, color) {
             el.style.display = "none";
         }, CONSTANTS.SUCCESS_MESSAGE_DURATION);
 }
+
+// === Token Security: Inactivity Timer & Cleanup ===
+let inactivityTimer;
+const INACTIVITY_TIMEOUT = 20 * 60 * 1000; // 20 minutes
+
+function startInactivityTimer() {
+    // Reset timer on any activity
+    window.onload = resetInactivityTimer;
+    document.onmousemove = resetInactivityTimer;
+    document.onkeypress = resetInactivityTimer;
+    document.onclick = resetInactivityTimer;
+    document.onscroll = resetInactivityTimer;
+
+    resetInactivityTimer();
+}
+
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    // Only set timer if user is logged in
+    if (sessionStorage.getItem("githubToken")) {
+        inactivityTimer = setTimeout(logoutDueToInactivity, INACTIVITY_TIMEOUT);
+    }
+}
+
+function logoutDueToInactivity() {
+    if (sessionStorage.getItem("githubToken")) {
+        alert("⚠️ Session expired due to inactivity (20 mins). Please log in again.");
+        logout();
+    }
+}
+
+// Start timer if session exists on load
+if (sessionStorage.getItem("githubToken")) {
+    startInactivityTimer();
+}
+
+// Clear token on tab close/refresh to ensure no persistence
+window.addEventListener('beforeunload', () => {
+    // Strictly clear token on tab close or refresh to prevents persistence
+    sessionStorage.removeItem("githubToken");
+});
