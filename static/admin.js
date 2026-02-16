@@ -2070,6 +2070,12 @@ async function saveToGitHub() {
             }
         );
 
+        const responseData = await res.json();
+        if (responseData && responseData.content && responseData.content.sha) {
+            currentSha = responseData.content.sha; // Immediate update
+            if (CONFIG.debug) console.log("✅ SHA updated immediately:", currentSha);
+        }
+
         showStatus("✅ Saved Successfully!", "#16a34a");
         updateSidebarStats();
 
@@ -2078,8 +2084,8 @@ async function saveToGitHub() {
         localStorage.removeItem(CONSTANTS.CACHE_KEY_PREFIX + cacheKey);
         if (CONFIG.debug) console.log(`🗑️ Cleared cache for ${cacheKey}`);
 
-        // Reload with force refresh to get updated SHA
-        setTimeout(() => loadMatches(true), 1500);
+        // Reload to refresh UI (optional now that SHA is safe)
+        loadMatches(true);
     } catch (e) {
         showStatus(`❌ ${e.message}`, "#ef4444");
 
