@@ -1101,7 +1101,7 @@
                 <div class="status-actions">
                     <span id="role-badge" class="system-badge"
                         style="background: #64748b; color: #fff; display: none;">Admin</span>
-                    <button onclick="showStructuralActionLog()"
+                    <button onclick="KSSS_UI_HOOKS.showStructuralActionLog()"
                         style="background:#0d47a1;color:#fff;padding:7px 14px;border-radius:16px;font-size:12px;border:none;cursor:pointer;"
                         title="View structural action log" aria-label="View structural action log">📝 Log</button>
                     <button class="theme-toggle" onclick="toggleDarkMode()" title="Toggle between dark and light theme"
@@ -1266,7 +1266,7 @@
                                 aria-label="Filter matches by round">
                                 <option value="all">All Rounds</option>
                             </select>
-                            <button onclick="clearFilters()"
+                            <button onclick="KSSS_UI_HOOKS.clearFilters()"
                                 style="width: auto; padding: 10px 20px; font-size: 14px; background: #6b7280;"
                                 aria-label="Clear all filters">
                                 ✖ Clear
@@ -1285,7 +1285,8 @@
 
             <!-- FOOTER SAVE BUTTON -->
             <div class="footer-actions">
-                <button class="save-btn" onclick="saveToGitHub()" aria-label="Save all changes and publish to GitHub">💾
+                <button class="save-btn" onclick="KSSS_UI_HOOKS.saveToGitHub()"
+                    aria-label="Save all changes and publish to GitHub">💾
                     Save & Publish to GitHub</button>
             </div>
         </div>

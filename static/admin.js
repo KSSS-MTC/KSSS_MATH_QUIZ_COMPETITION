@@ -63,10 +63,10 @@ function showSwapModal() {
                 ⚠️ This action will immediately save to GitHub
             </div>
             <div style='display:flex;gap:12px;justify-content:center;'>
-                <button onclick='confirmTeamSwap()' style='flex:1;background:linear-gradient(135deg, var(--success) 0%, #15803d 100%);color:#fff;padding:12px 24px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;font-size:15px;box-shadow:0 4px 12px rgba(22,163,74,0.3);transition:all 0.2s;' onmouseover='this.style.transform="translateY(-2px)";this.style.boxShadow="0 6px 16px rgba(22,163,74,0.4)"' onmouseout='this.style.transform="translateY(0)";this.style.boxShadow="0 4px 12px rgba(22,163,74,0.3)"'>
+                <button data-action="confirmTeamSwap" style='flex:1;background:linear-gradient(135deg, var(--success) 0%, #15803d 100%);color:#fff;padding:12px 24px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;font-size:15px;box-shadow:0 4px 12px rgba(22,163,74,0.3);transition:all 0.2s;' onmouseover='this.style.transform="translateY(-2px)";this.style.boxShadow="0 6px 16px rgba(22,163,74,0.4)"' onmouseout='this.style.transform="translateY(0)";this.style.boxShadow="0 4px 12px rgba(22,163,74,0.3)"'>
                     ✓ Yes, Swap Teams
                 </button>
-                <button onclick='cancelTeamSwap()' style='flex:1;background:var(--locked-bg);color:var(--text-muted);padding:12px 24px;border:2px solid var(--border-color);border-radius:10px;font-weight:bold;cursor:pointer;font-size:15px;transition:all 0.2s;' onmouseover='this.style.background="var(--border-color)";this.style.color="white"' onmouseout='this.style.background="var(--locked-bg)";this.style.color="var(--text-muted)"'>
+                <button data-action="cancelTeamSwap" style='flex:1;background:var(--locked-bg);color:var(--text-muted);padding:12px 24px;border:2px solid var(--border-color);border-radius:10px;font-weight:bold;cursor:pointer;font-size:15px;transition:all 0.2s;' onmouseover='this.style.background="var(--border-color)";this.style.color="white"' onmouseout='this.style.background="var(--locked-bg)";this.style.color="var(--text-muted)"'>
                     × Cancel
                 </button>
             </div>
@@ -250,7 +250,7 @@ const AdminSecurity = (() => {
 
     async function verifySession() {
         const token = sessionStorage.getItem("githubToken");
-        if (!token) {
+        if (!token || token === "null" || token === "undefined") {
             showLoginModal();
             return;
         }
@@ -1007,6 +1007,36 @@ async function hashString(str) {
 window.addEventListener("DOMContentLoaded", () => {
     AdminSecurity.verifySession();
 
+    // === PHASE 4: Global Event Delegation ===
+    // Handles clicks for any element with data-action attributes
+    document.body.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+
+        const action = target.dataset.action;
+        if (!action) return;
+
+        // Check if KSSS_UI_HOOKS has this action
+        if (window.KSSS_UI_HOOKS && typeof window.KSSS_UI_HOOKS[action] === 'function') {
+            e.preventDefault(); // Prevent default behavior
+
+            // Parse params if they exist
+            let params = [];
+            if (target.dataset.params) {
+                try {
+                    params = JSON.parse(target.dataset.params);
+                    // Ensure params is an array
+                    if (!Array.isArray(params)) params = [params];
+                } catch (err) {
+                    console.warn(`Invalid params for action ${action}:`, err);
+                    return;
+                }
+            }
+
+            // Execute safely via KSSS_UI_HOOKS (which already handles re-entrance)
+            window.KSSS_UI_HOOKS[action](...params);
+        }
+    });
 
     // Keyboard shortcuts: Ctrl+Z (Undo), Ctrl+Y / Ctrl+Shift+Z (Redo), Ctrl+E (CSV), Ctrl+P (PDF)
     document.addEventListener("keydown", (event) => {
@@ -1049,6 +1079,16 @@ async function loadMatches(forceRefresh = false) {
 
     if (loadBtn) setButtonLoading(loadBtn, true);
 
+    // New: Check for token presence before loading anything (even cache)
+    const token = sessionStorage.getItem("githubToken");
+    if (!token || token === "null" || token === "undefined") {
+        alert("Please log in to view matches.");
+        document.getElementById("loading-overlay").classList.add("hidden"); // Fix: Stop infinite spinner
+        showLoginModal();
+        if (loadBtn) setButtonLoading(loadBtn, false);
+        return;
+    }
+
     try {
         // Try cache first (unless force refresh)
         if (!forceRefresh) {
@@ -1074,7 +1114,10 @@ async function loadMatches(forceRefresh = false) {
         // Cache miss or force refresh - fetch from GitHub
         showStatus(forceRefresh ? "Refreshing from GitHub..." : "Connecting to GitHub...", "#3b82f6");
 
-        const res = await fetchWithRetry(url, {
+        // Add cache buster if forcing refresh
+        const fetchUrl = forceRefresh ? `${url}?t=${Date.now()}` : url;
+
+        const res = await fetchWithRetry(fetchUrl, {
             headers: { Authorization: `token ${sessionStorage.getItem("githubToken")}` }
         });
 
@@ -1207,12 +1250,14 @@ function createMatchCard(m, rIdx, mIdx, isLocked) {
 
         if (unlockedA) {
             labelA.style.cssText = "background:linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:bold;box-shadow:0 2px 8px rgba(59,130,246,0.4);animation:pulse 1.5s infinite;";
-            labelA.onclick = () => relockTeam(rIdx, mIdx, 'A');
+            labelA.dataset.action = "relockTeam";
+            labelA.dataset.params = JSON.stringify([rIdx, mIdx, 'A']);
         } else if (eligibleA) {
             labelA.style.cssText = "cursor:pointer;color:#3b82f6;font-weight:bold;text-decoration:underline;padding:4px 8px;border-radius:6px;background:var(--active-bg);transition:all 0.2s ease;";
             labelA.onmouseover = function () { this.style.background = 'var(--active-overlay)'; };
             labelA.onmouseout = function () { this.style.background = 'var(--active-bg)'; };
-            labelA.onclick = () => unlockTeam(rIdx, mIdx, 'A');
+            labelA.dataset.action = "unlockTeam";
+            labelA.dataset.params = JSON.stringify([rIdx, mIdx, 'A']);
         }
         colA.appendChild(labelA);
 
@@ -1238,12 +1283,14 @@ function createMatchCard(m, rIdx, mIdx, isLocked) {
 
         if (unlockedB) {
             labelB.style.cssText = "background:linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:bold;box-shadow:0 2px 8px rgba(59,130,246,0.4);animation:pulse 1.5s infinite;";
-            labelB.onclick = () => relockTeam(rIdx, mIdx, 'B');
+            labelB.dataset.action = "relockTeam";
+            labelB.dataset.params = JSON.stringify([rIdx, mIdx, 'B']);
         } else if (eligibleB) {
             labelB.style.cssText = "cursor:pointer;color:#3b82f6;font-weight:bold;text-decoration:underline;padding:4px 8px;border-radius:6px;background:#eff6ff;transition:all 0.2s ease;";
             labelB.onmouseover = function () { this.style.background = '#dbeafe'; };
             labelB.onmouseout = function () { this.style.background = '#eff6ff'; };
-            labelB.onclick = () => unlockTeam(rIdx, mIdx, 'B');
+            labelB.dataset.action = "unlockTeam";
+            labelB.dataset.params = JSON.stringify([rIdx, mIdx, 'B']);
         }
         colB.appendChild(labelB);
 
@@ -1479,7 +1526,7 @@ function updatePaginationControls() {
     paginationContainer.style.display = 'flex';
 
     let html = `
-        <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} 
+        <button data-action="changePage" data-params="[${currentPage - 1}]" ${currentPage === 1 ? 'disabled' : ''} 
                 style="padding: 8px 16px; border-radius: 8px; border: 2px solid var(--border-color); 
                        background: var(--card-bg); color: var(--text-main); cursor: pointer;">
             ← Previous
@@ -1497,7 +1544,7 @@ function updatePaginationControls() {
     }
 
     if (startPage > 1) {
-        html += `<button onclick="changePage(1)" style="padding: 8px 12px; border-radius: 8px; 
+        html += `<button data-action="changePage" data-params="[1]" style="padding: 8px 12px; border-radius: 8px; 
                         border: 2px solid var(--border-color); background: var(--card-bg); 
                         color: var(--text-main); cursor: pointer;">1</button>`;
         if (startPage > 2) {
@@ -1508,7 +1555,7 @@ function updatePaginationControls() {
     for (let i = startPage; i <= endPage; i++) {
         const isActive = i === currentPage;
         html += `
-            <button onclick="changePage(${i})" 
+            <button data-action="changePage" data-params="[${i}]" 
                     style="padding: 8px 12px; border-radius: 8px; 
                            border: 2px solid ${isActive ? 'var(--primary)' : 'var(--border-color)'}; 
                            background: ${isActive ? 'var(--primary)' : 'var(--card-bg)'}; 
@@ -1523,14 +1570,14 @@ function updatePaginationControls() {
         if (endPage < totalPages - 1) {
             html += `<span style="color: var(--text-muted);">...</span>`;
         }
-        html += `<button onclick="changePage(${totalPages})" style="padding: 8px 12px; border-radius: 8px; 
+        html += `<button data-action="changePage" data-params="[${totalPages}]" style="padding: 8px 12px; border-radius: 8px; 
                         border: 2px solid var(--border-color); background: var(--card-bg); 
                         color: var(--text-main); cursor: pointer;">${totalPages}</button>`;
     }
 
     html += `
         </div>
-        <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}
+        <button data-action="changePage" data-params="[${currentPage + 1}]" ${currentPage === totalPages ? 'disabled' : ''}
                 style="padding: 8px 16px; border-radius: 8px; border: 2px solid var(--border-color); 
                        background: var(--card-bg); color: var(--text-main); cursor: pointer;">
             Next →
@@ -1615,7 +1662,8 @@ function addRoundDeletionControls(container, round, rIdx) {
 
         const btnText = `🗑️ Delete This Round${hasSubsequentRounds ? ` (+${subsequentCount} subsequent)` : ''}`;
         const deleteBtn = createEl("button", "", btnText, "background: var(--danger); border: 2px solid var(--danger-text); width: 100%; color: white; padding: 8px; cursor: pointer; border-radius: 6px;");
-        deleteBtn.onclick = () => cascadeDeleteRound(rIdx);
+        deleteBtn.dataset.action = "cascadeDeleteRound";
+        deleteBtn.dataset.params = JSON.stringify([rIdx]);
         controlsDiv.appendChild(deleteBtn);
 
         if (hasSubsequentRounds) {
@@ -1647,7 +1695,7 @@ function addRoundManagementControls(container, round, rIdx) {
             banner.appendChild(textSpan);
 
             const exitBtn = createEl("button", "", "Exit Switch Mode", "background:#64748b;color:#fff;padding:6px 16px;border-radius:8px;border:none;cursor:pointer;");
-            exitBtn.onclick = exitTeamSwitchMode;
+            exitBtn.dataset.action = "exitTeamSwitchMode";
             banner.appendChild(exitBtn);
 
             container.parentNode.insertBefore(banner, container);
@@ -1686,7 +1734,8 @@ function addRoundManagementControls(container, round, rIdx) {
     // Best Loser Button
     if (roundComplete && hasOddTeams && !hasBestLoser) {
         const blBtn = createEl("button", "", "🏆 Create Best Loser Playoff", "margin-bottom: 10px; background: #f59e0b; width:100%; padding:10px; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;");
-        blBtn.onclick = () => showBestLoserCreator(rIdx);
+        blBtn.dataset.action = "showBestLoserCreator";
+        blBtn.dataset.params = JSON.stringify([rIdx]);
         controlsDiv.appendChild(blBtn);
     } else if (hasBestLoser) {
         const blStatus = createEl("div", "", "✅ Best Loser Playoff exists", "padding: 10px; background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); border-radius: 6px; margin-bottom: 10px;");
@@ -1696,7 +1745,8 @@ function addRoundManagementControls(container, round, rIdx) {
     // Generate Next Round Button
     if (canGenerateNextRound()) {
         const genBtn = createEl("button", "", "➕ Generate Next Round", "background: var(--success); margin-bottom: 10px; width:100%; padding:10px; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;");
-        genBtn.onclick = () => showRoundGenerator(rIdx);
+        genBtn.dataset.action = "showRoundGenerator";
+        genBtn.dataset.params = JSON.stringify([rIdx]);
         controlsDiv.appendChild(genBtn);
     } else if (!roundComplete) {
         const warning = createEl("div", "", "⚠️ Complete all matches before generating next round", "padding: 10px; background: var(--info-bg); border: 1px solid var(--info-border); border-radius: 6px; color: var(--info-text); margin-bottom: 10px;");
@@ -1706,7 +1756,8 @@ function addRoundManagementControls(container, round, rIdx) {
     // End Tournament Button (only if round is complete and this is truly the final round)
     if (roundComplete && canGenerateNextRound() && qualified.length <= 4) {
         const endBtn = createEl("button", "", "🏁 End Tournament & Lock Final Round", "background: #7c3aed; margin-top: 10px; width:100%; padding:10px; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;");
-        endBtn.onclick = () => endTournament(rIdx);
+        endBtn.dataset.action = "endTournament";
+        endBtn.dataset.params = JSON.stringify([rIdx]);
         controlsDiv.appendChild(endBtn);
     }
 
@@ -1716,7 +1767,8 @@ function addRoundManagementControls(container, round, rIdx) {
     const role = AdminSecurity.getRole();
     if (role === ROLE_ABSOLUTE && !switchModeActive) {
         const switchBtn = createEl("button", "", "🔄 Enable Team Switch Mode", "background:#0d47a1;color:#fff;margin-top:10px;width:100%;padding:10px;border:none;border-radius:6px;cursor:pointer;font-weight:bold;");
-        switchBtn.onclick = () => activateTeamSwitchMode(rIdx);
+        switchBtn.dataset.action = "activateTeamSwitchMode";
+        switchBtn.dataset.params = JSON.stringify([rIdx]);
         controlsDiv.appendChild(switchBtn);
     }
 }
@@ -2044,6 +2096,14 @@ async function saveToGitHub() {
         return;
     }
 
+    // New: Check for token presence before attempting request
+    const token = sessionStorage.getItem("githubToken");
+    if (!token) {
+        alert("Please log in to save changes.");
+        showLoginModal();
+        return;
+    }
+
     const path = `data/competition-grade${currentData.grade}.json`;
     const saveBtn = document.querySelector('button[onclick="saveToGitHub()"]');
 
@@ -2072,20 +2132,22 @@ async function saveToGitHub() {
 
         const responseData = await res.json();
         if (responseData && responseData.content && responseData.content.sha) {
-            currentSha = responseData.content.sha; // Immediate update
+            currentSha = responseData.content.sha; // Immediate update from authoritative source
             if (CONFIG.debug) console.log("✅ SHA updated immediately:", currentSha);
         }
 
-        showStatus("✅ Saved Successfully!", "#16a34a");
+        // 1. Update local cache with the data we just successfully pushed
+        const cacheKey = `grade${currentData.grade}`;
+        setCachedData(cacheKey, { data: currentData, sha: currentSha });
+        if (CONFIG.debug) console.log(`💾 Local cache updated for ${cacheKey}`);
+
+        // 2. Refresh UI directly without a network re-fetch (avoids propagation delay)
+        renderForm();
         updateSidebarStats();
 
-        // Clear cache for this grade to ensure fresh data on next load
-        const cacheKey = `grade${currentData.grade}`;
-        localStorage.removeItem(CONSTANTS.CACHE_KEY_PREFIX + cacheKey);
-        if (CONFIG.debug) console.log(`🗑️ Cleared cache for ${cacheKey}`);
+        showStatus("✅ Saved & Published Successfully!", "#16a34a");
 
-        // Reload to refresh UI (optional now that SHA is safe)
-        loadMatches(true);
+        // Removed: loadMatches(true); // Redundant and risks fetching stale data during propagation delay
     } catch (e) {
         showStatus(`❌ ${e.message}`, "#ef4444");
 
@@ -2094,7 +2156,7 @@ async function saveToGitHub() {
         if (e.status === 409) {
             errorDetails += "\n\nThe file has been modified by someone else. Click OK to reload the latest version.";
             if (confirm(errorDetails)) {
-                loadMatches();
+                loadMatches(true); // Fix: MUST force refresh to get new SHA and content
             }
         } else {
             alert(`Failed to save:\n\n${errorDetails}\n\nPlease check:\n• Your GitHub token is valid\n• You have write permissions\n• Your internet connection`);
@@ -2154,8 +2216,8 @@ function showBestLoserCreator(rIdx) {
             </div>
         </div>
         <div class="modal-footer">
-            <button onclick="createBestLoserMatch(${rIdx})" style="background: var(--success);">✅ Create Match</button>
-            <button onclick="closeBestLoserModal()" style="background: var(--danger);">❌ Cancel</button>
+            <button data-action="createBestLoserMatch" data-params="[${rIdx}]" style="background: var(--success);">✅ Create Match</button>
+            <button data-action="closeBestLoserModal" style="background: var(--danger);">❌ Cancel</button>
         </div>
     `;
 
@@ -2349,8 +2411,8 @@ function showRoundGenerator(rIdx) {
     </div>`;
 
     html += `<div style="display: flex; gap: 10px; margin-top: 20px;">
-        <button onclick="startPairing(${rIdx})" style="flex: 1; background: var(--success);">✅ Start Pairing</button>
-        <button onclick="closeRoundGenModal()" style="flex: 1; background: #ef4444;">❌ Cancel</button>
+        <button data-action="startPairing" data-params="[${rIdx}]" style="flex: 1; background: var(--success);">✅ Start Pairing</button>
+        <button data-action="closeRoundGenModal" style="flex: 1; background: #ef4444;">❌ Cancel</button>
     </div>`;
 
     modal.innerHTML = html;
@@ -2434,8 +2496,8 @@ function showPairingUI(numMatches) {
             </div>
         </div>
         <div class="modal-footer">
-            <button onclick="finalizePairing(${numMatches})" style="background: var(--success);">✅ Create Round</button>
-            <button onclick="closeRoundGenModal()" style="background: var(--danger);">❌ Cancel</button>
+            <button data-action="finalizePairing" data-params="[${numMatches}]" style="background: var(--success);">✅ Create Round</button>
+            <button data-action="closeRoundGenModal" style="background: var(--danger);">❌ Cancel</button>
         </div>
     `;
 
@@ -2976,12 +3038,25 @@ window.addEventListener('beforeunload', () => {
     sessionStorage.removeItem("githubToken");
 });
 
-// Stub function for showLoginModal (referenced in AdminSecurity.verifySession but not defined)
-// In this implementation, login section is visible by default in HTML, so this is a no-op
 function showLoginModal() {
-    // Login section is already visible by default in admin.html
-    // This stub prevents ReferenceError in AdminSecurity.verifySession (line 254)
-    if (CONFIG.debug) console.log("showLoginModal called - login section should be visible");
+    // 1. Enforce UI Visibility
+    const loginSection = document.getElementById("login-section");
+    const gradeSection = document.getElementById("grade-section");
+    const editorSection = document.getElementById("editor-section"); // New: Target main UI
+    const adminDisplay = document.getElementById("admin-display");
+
+    if (loginSection) loginSection.classList.remove("hidden");
+    if (gradeSection) gradeSection.classList.add("hidden");
+    if (editorSection) editorSection.classList.add("hidden"); // New: Force hide brackets
+    if (adminDisplay) adminDisplay.innerHTML = "Please authenticate to access tournament management";
+
+    // 2. Clear Stale Session Data
+    sessionStorage.removeItem("githubToken");
+    sessionStorage.removeItem("adminUser");
+    sessionStorage.removeItem("currentAdminRole");
+    sessionStorage.removeItem("secureAdminRole");
+
+    if (CONFIG.debug) console.log("🔒 Secured UI: Reset to login state");
 }
 
 // ===============================
