@@ -310,13 +310,13 @@
           },
           "teamA": {
             "name": "Umar 2 / Umar 3",
-            "points": null
+            "points": 22
           },
           "teamB": {
             "name": "Umar 1 / Bilal",
-            "points": null
+            "points": 44
           },
-          "winner": null
+          "winner": "Umar 1 / Bilal"
         },
         {
           "id": 2,
@@ -328,13 +328,13 @@
           },
           "teamA": {
             "name": "Naffisah 2",
-            "points": null
+            "points": 44
           },
           "teamB": {
             "name": "Aisha 1 / Roheyah",
-            "points": null
+            "points": 66
           },
-          "winner": null
+          "winner": "Aisha 1 / Roheyah"
         },
         {
           "id": 3,
@@ -346,13 +346,13 @@
           },
           "teamA": {
             "name": "Saffiah 2",
-            "points": null
+            "points": 55
           },
           "teamB": {
             "name": "Fatimah 2",
-            "points": null
+            "points": 66
           },
-          "winner": null
+          "winner": "Fatimah 2"
         }
       ]
     }
