@@ -298,7 +298,7 @@
     {
       "id": 3,
       "name": "Round 3",
-      "status": "locked",
+      "status": "active",
       "matches": [
         {
           "id": 1,
@@ -353,67 +353,6 @@
             "points": 66
           },
           "winner": "Fatimah 2"
-        },
-        {
-          "id": 4,
-          "type": "best_loser",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Saffiah 2",
-            "points": 33
-          },
-          "teamB": {
-            "name": "Naffisah 2",
-            "points": 44
-          },
-          "winner": "Naffisah 2"
-        }
-      ]
-    },
-    {
-      "id": 4,
-      "name": "Round 4",
-      "status": "active",
-      "matches": [
-        {
-          "id": 1,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Umar 1 / Bilal",
-            "points": 33
-          },
-          "teamB": {
-            "name": "Aisha 1 / Roheyah",
-            "points": 44
-          },
-          "winner": "Aisha 1 / Roheyah"
-        },
-        {
-          "id": 2,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Fatimah 2",
-            "points": 66
-          },
-          "teamB": {
-            "name": "Naffisah 2",
-            "points": 77
-          },
-          "winner": "Naffisah 2"
         }
       ]
     }
@@ -448,6 +387,36 @@
         "roundIndex": 4,
         "timestamp": "2026-02-17T01:11:57.742Z"
       }
+    },
+    {
+      "action": "Cascade Delete Round",
+      "timestamp": "2026-02-17T01:13:26.219Z",
+      "admin": "Y-JAMMEH",
+      "details": {
+        "admin": "Y-JAMMEH",
+        "roundIndex": 2,
+        "timestamp": "2026-02-17T01:13:26.219Z"
+      }
+    },
+    {
+      "action": "Cascade Delete Round",
+      "timestamp": "2026-02-17T01:13:45.177Z",
+      "admin": "Y-JAMMEH",
+      "details": {
+        "admin": "Y-JAMMEH",
+        "roundIndex": 2,
+        "timestamp": "2026-02-17T01:13:45.177Z"
+      }
+    },
+    {
+      "action": "Cascade Delete Round",
+      "timestamp": "2026-02-17T01:13:59.346Z",
+      "admin": "Y-JAMMEH",
+      "details": {
+        "admin": "Y-JAMMEH",
+        "roundIndex": 3,
+        "timestamp": "2026-02-17T01:13:59.346Z"
+      }
     }
   ],
   "auditLog": [
@@ -463,6 +432,20 @@
         "bestLoserMatchesDeleted": 0,
         "unlockedRound": "Round 4",
         "removedBestLoserFromUnlocked": false
+      }
+    },
+    {
+      "timestamp": "2026-02-17T01:14:31.900Z",
+      "action": "CASCADE_DELETE_ROUNDS",
+      "user": "Y-JAMMEH",
+      "details": {
+        "deletedRounds": [
+          "Round 4"
+        ],
+        "matchesDeleted": 2,
+        "bestLoserMatchesDeleted": 0,
+        "unlockedRound": "Round 3",
+        "removedBestLoserFromUnlocked": true
       }
     }
   ]
