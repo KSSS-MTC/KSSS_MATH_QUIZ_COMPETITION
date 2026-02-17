@@ -377,7 +377,7 @@
     {
       "id": 4,
       "name": "Round 4",
-      "status": "locked",
+      "status": "active",
       "matches": [
         {
           "id": 1,
@@ -416,31 +416,6 @@
           "winner": "Naffisah 2"
         }
       ]
-    },
-    {
-      "id": 5,
-      "name": "Round 5",
-      "status": "active",
-      "matches": [
-        {
-          "id": 1,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Aisha 1 / Roheyah",
-            "points": 22
-          },
-          "teamB": {
-            "name": "Naffisah 2",
-            "points": 33
-          },
-          "winner": "Naffisah 2"
-        }
-      ]
     }
   ],
   "structuralLog": [
@@ -462,6 +437,32 @@
           "match": 3,
           "side": "B"
         }
+      }
+    },
+    {
+      "action": "Cascade Delete Round",
+      "timestamp": "2026-02-17T01:11:57.743Z",
+      "admin": "Y-JAMMEH",
+      "details": {
+        "admin": "Y-JAMMEH",
+        "roundIndex": 4,
+        "timestamp": "2026-02-17T01:11:57.742Z"
+      }
+    }
+  ],
+  "auditLog": [
+    {
+      "timestamp": "2026-02-17T01:13:01.347Z",
+      "action": "CASCADE_DELETE_ROUNDS",
+      "user": "Y-JAMMEH",
+      "details": {
+        "deletedRounds": [
+          "Round 5"
+        ],
+        "matchesDeleted": 1,
+        "bestLoserMatchesDeleted": 0,
+        "unlockedRound": "Round 4",
+        "removedBestLoserFromUnlocked": false
       }
     }
   ]
