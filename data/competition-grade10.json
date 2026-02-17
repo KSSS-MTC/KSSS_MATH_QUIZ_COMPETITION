@@ -353,6 +353,24 @@
             "points": 66
           },
           "winner": "Fatimah 2"
+        },
+        {
+          "id": 4,
+          "type": "best_loser",
+          "schedule": {
+            "date": "Pending",
+            "time": "TBD",
+            "location": "Maths Lab"
+          },
+          "teamA": {
+            "name": "Saffiah 2",
+            "points": null
+          },
+          "teamB": {
+            "name": "Naffisah 2",
+            "points": null
+          },
+          "winner": null
         }
       ]
     }
