@@ -135,13 +135,13 @@
           },
           "teamA": {
             "name": "Saffiah 1",
-            "points": 12
+            "points": 16
           },
           "teamB": {
             "name": "Aisha 1 / Khadijah",
             "points": 12
           },
-          "winner": null
+          "winner": "Saffiah 1"
         },
         {
           "id": 9,
