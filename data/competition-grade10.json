@@ -5,7 +5,7 @@
     {
       "id": 1,
       "name": "Round 1",
-      "status": "locked",
+      "status": "active",
       "matches": [
         {
           "id": 1,
@@ -169,108 +169,11 @@
             "location": "Maths Lab"
           },
           "teamA": {
+            "name": "Aisha 2",
+            "points": null
+          },
+          "teamB": {
             "name": "Aisha 1 / Roheyah",
-            "points": 5
-          },
-          "teamB": {
-            "name": "Aisha 2",
-            "points": 7
-          },
-          "winner": "Aisha 2"
-        }
-      ]
-    },
-    {
-      "id": 2,
-      "name": "Round 2",
-      "status": "active",
-      "matches": [
-        {
-          "id": 1,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Umar 2 / Umar 3",
-            "points": null
-          },
-          "teamB": {
-            "name": "Aisha 3",
-            "points": null
-          },
-          "winner": null
-        },
-        {
-          "id": 2,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Naffisah 1",
-            "points": null
-          },
-          "teamB": {
-            "name": "Hamza",
-            "points": null
-          },
-          "winner": null
-        },
-        {
-          "id": 3,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Ousman",
-            "points": null
-          },
-          "teamB": {
-            "name": "Saffiah 1",
-            "points": null
-          },
-          "winner": null
-        },
-        {
-          "id": 4,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Roheyah",
-            "points": null
-          },
-          "teamB": {
-            "name": "Ali",
-            "points": null
-          },
-          "winner": null
-        },
-        {
-          "id": 5,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Saffiah 2",
-            "points": null
-          },
-          "teamB": {
-            "name": "Aisha 2",
             "points": null
           },
           "winner": null
