@@ -159,6 +159,24 @@
             "points": 7
           },
           "winner": "Aisha 2"
+        },
+        {
+          "id": 10,
+          "type": "best_loser",
+          "schedule": {
+            "date": "Pending",
+            "time": "TBD",
+            "location": "Maths Lab"
+          },
+          "teamA": {
+            "name": "Saffiah 2",
+            "points": null
+          },
+          "teamB": {
+            "name": "Aisha 1 / Khadijah",
+            "points": null
+          },
+          "winner": null
         }
       ]
     }
