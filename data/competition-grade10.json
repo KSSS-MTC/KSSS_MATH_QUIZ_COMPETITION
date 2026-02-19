@@ -298,7 +298,7 @@
     {
       "id": 3,
       "name": "Round 3",
-      "status": "locked",
+      "status": "active",
       "matches": [
         {
           "id": 1,
@@ -351,67 +351,6 @@
           "teamB": {
             "name": "Roheyah",
             "points": 55
-          },
-          "winner": "Roheyah"
-        },
-        {
-          "id": 4,
-          "type": "best_loser",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Hamza",
-            "points": 8
-          },
-          "teamB": {
-            "name": "Saffiah 2",
-            "points": 5
-          },
-          "winner": "Hamza"
-        }
-      ]
-    },
-    {
-      "id": 4,
-      "name": "Round 4",
-      "status": "active",
-      "matches": [
-        {
-          "id": 1,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Aisha 1 / Roheyah",
-            "points": 9
-          },
-          "teamB": {
-            "name": "Saffiah 1",
-            "points": 99
-          },
-          "winner": "Saffiah 1"
-        },
-        {
-          "id": 2,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Roheyah",
-            "points": 88
-          },
-          "teamB": {
-            "name": "Hamza",
-            "points": 66
           },
           "winner": "Roheyah"
         }
@@ -688,6 +627,16 @@
         "roundIndex": 4,
         "timestamp": "2026-02-19T02:38:23.083Z"
       }
+    },
+    {
+      "action": "Cascade Delete Round",
+      "timestamp": "2026-02-19T02:38:59.467Z",
+      "admin": "Y-JAMMEH",
+      "details": {
+        "admin": "Y-JAMMEH",
+        "roundIndex": 3,
+        "timestamp": "2026-02-19T02:38:59.467Z"
+      }
     }
   ],
   "auditLog": [
@@ -801,6 +750,20 @@
         "bestLoserMatchesDeleted": 0,
         "unlockedRound": "Round 4",
         "removedBestLoserFromUnlocked": false
+      }
+    },
+    {
+      "timestamp": "2026-02-19T02:39:06.138Z",
+      "action": "CASCADE_DELETE_ROUNDS",
+      "user": "Y-JAMMEH",
+      "details": {
+        "deletedRounds": [
+          "Round 4"
+        ],
+        "matchesDeleted": 2,
+        "bestLoserMatchesDeleted": 0,
+        "unlockedRound": "Round 3",
+        "removedBestLoserFromUnlocked": true
       }
     }
   ]
