@@ -432,13 +432,13 @@
           },
           "teamA": {
             "name": "Saffiah 1",
-            "points": null
+            "points": 2
           },
           "teamB": {
             "name": "Roheyah",
-            "points": null
+            "points": 21
           },
-          "winner": null
+          "winner": "Roheyah"
         }
       ]
     }
