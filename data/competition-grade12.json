@@ -389,13 +389,13 @@
           },
           "teamA": {
             "name": "Naffisah 2",
-            "points": null
+            "points": 33
           },
           "teamB": {
             "name": "Umar 2",
-            "points": null
+            "points": 55
           },
-          "winner": null
+          "winner": "Umar 2"
         },
         {
           "id": 2,
@@ -407,13 +407,13 @@
           },
           "teamA": {
             "name": "Ousman",
-            "points": null
+            "points": 33
           },
           "teamB": {
             "name": "Fatimah 2",
-            "points": null
+            "points": 44
           },
-          "winner": null
+          "winner": "Fatimah 2"
         }
       ]
     }
