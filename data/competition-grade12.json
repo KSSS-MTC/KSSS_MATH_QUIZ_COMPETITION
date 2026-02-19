@@ -159,6 +159,24 @@
             "points": 99
           },
           "winner": "Ali"
+        },
+        {
+          "id": 10,
+          "type": "best_loser",
+          "schedule": {
+            "date": "Pending",
+            "time": "TBD",
+            "location": "Maths Lab"
+          },
+          "teamA": {
+            "name": "Bilal / Khadijah",
+            "points": null
+          },
+          "teamB": {
+            "name": "Fatimah 2",
+            "points": null
+          },
+          "winner": null
         }
       ]
     }
