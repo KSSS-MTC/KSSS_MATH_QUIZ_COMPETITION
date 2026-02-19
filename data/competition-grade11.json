@@ -183,7 +183,7 @@
     {
       "id": 2,
       "name": "Round 2",
-      "status": "locked",
+      "status": "active",
       "matches": [
         {
           "id": 1,
@@ -274,85 +274,6 @@
             "points": 4
           },
           "winner": "Ousman"
-        },
-        {
-          "id": 6,
-          "type": "best_loser",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Roheyah",
-            "points": 6
-          },
-          "teamB": {
-            "name": "Umar 1 / Bilal",
-            "points": 8
-          },
-          "winner": "Umar 1 / Bilal"
-        }
-      ]
-    },
-    {
-      "id": 3,
-      "name": "Round 3",
-      "status": "active",
-      "matches": [
-        {
-          "id": 1,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Saffiah 1",
-            "points": 4
-          },
-          "teamB": {
-            "name": "Zainab 1",
-            "points": 77
-          },
-          "winner": "Zainab 1"
-        },
-        {
-          "id": 2,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Hamza",
-            "points": 8
-          },
-          "teamB": {
-            "name": "Ousman",
-            "points": 7
-          },
-          "winner": "Hamza"
-        },
-        {
-          "id": 3,
-          "type": "normal",
-          "schedule": {
-            "date": "Pending",
-            "time": "TBD",
-            "location": "Maths Lab"
-          },
-          "teamA": {
-            "name": "Umar 1 / Bilal",
-            "points": 66
-          },
-          "teamB": {
-            "name": "Naffisah 1",
-            "points": 4
-          },
-          "winner": "Umar 1 / Bilal"
         }
       ]
     }
@@ -497,6 +418,16 @@
         "roundIndex": 3,
         "timestamp": "2026-02-19T03:13:15.507Z"
       }
+    },
+    {
+      "action": "Cascade Delete Round",
+      "timestamp": "2026-02-19T03:13:34.981Z",
+      "admin": "Y-JAMMEH",
+      "details": {
+        "admin": "Y-JAMMEH",
+        "roundIndex": 2,
+        "timestamp": "2026-02-19T03:13:34.981Z"
+      }
     }
   ],
   "auditLog": [
@@ -539,6 +470,20 @@
         "matchesDeleted": 2,
         "bestLoserMatchesDeleted": 0,
         "unlockedRound": "Round 3",
+        "removedBestLoserFromUnlocked": true
+      }
+    },
+    {
+      "timestamp": "2026-02-19T03:13:41.298Z",
+      "action": "CASCADE_DELETE_ROUNDS",
+      "user": "Y-JAMMEH",
+      "details": {
+        "deletedRounds": [
+          "Round 3"
+        ],
+        "matchesDeleted": 3,
+        "bestLoserMatchesDeleted": 0,
+        "unlockedRound": "Round 2",
         "removedBestLoserFromUnlocked": true
       }
     }
