@@ -274,6 +274,24 @@
             "points": 4
           },
           "winner": "Ousman"
+        },
+        {
+          "id": 6,
+          "type": "best_loser",
+          "schedule": {
+            "date": "Pending",
+            "time": "TBD",
+            "location": "Maths Lab"
+          },
+          "teamA": {
+            "name": "Roheyah",
+            "points": null
+          },
+          "teamB": {
+            "name": "Umar 1 / Bilal",
+            "points": null
+          },
+          "winner": null
         }
       ]
     }
