@@ -322,8 +322,8 @@ h1 {
 }
 
 .theme-toggle:hover {
-  transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  /* transform: translateY(-2px); removed */
 }
 
 .match-schedule .schedule-date {
@@ -528,3 +528,36 @@ h1 {
     page-break-inside: avoid;
   }
 }
+
+/* --- Round color variations (add at the end) --- */
+.round-1 .round-title {
+  border-left-color: #0d47a1;
+  /* deep blue */
+}
+
+.round-2 .round-title {
+  border-left-color: #2e7d32;
+  /* green */
+}
+
+.round-3 .round-title {
+  border-left-color: #b71c1c;
+  /* red */
+}
+
+.round-4 .round-title {
+  border-left-color: #ff6f00;
+  /* amber */
+}
+
+.round-5 .round-title {
+  border-left-color: #6a1b9a;
+  /* purple */
+}
+
+.round-6 .round-title {
+  border-left-color: #00796b;
+  /* teal */
+}
+
+/* Add more as needed */
