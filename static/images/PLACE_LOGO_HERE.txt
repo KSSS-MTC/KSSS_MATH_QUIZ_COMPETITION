@@ -1,6 +1,0 @@
-Put your official logo file here and name it exactly:
-logo.png
-
-Used by:
-- index.html
-- admin.html
