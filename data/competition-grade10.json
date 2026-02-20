@@ -170,13 +170,13 @@
           },
           "teamA": {
             "name": "Umar 2 / Umar 3",
-            "points": null
+            "points": 22
           },
           "teamB": {
             "name": "Saffiah 1",
-            "points": null
+            "points": 33
           },
-          "winner": null
+          "winner": "Saffiah 1"
         }
       ]
     }
