@@ -252,7 +252,8 @@ h1 {
   border: 2px solid var(--winner-border);
   background: var(--winner-bg) !important;
   border-radius: 10px;
-  padding: 6px 10px;
+  padding: 4px 6px;
+  /* restored to original */
 }
 
 /* Match Schedule Layout */
@@ -323,7 +324,7 @@ h1 {
 
 .theme-toggle:hover {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  /* transform: translateY(-2px); removed */
+  /* transform removed */
 }
 
 .match-schedule .schedule-date {

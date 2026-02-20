@@ -35,9 +35,11 @@ fetch(jsonFile)
     try {
       const rounds = Array.isArray(data?.rounds) ? data.rounds : [];
 
-      rounds.forEach(round => {
+      rounds.forEach((round, index) => {
         const roundDiv = document.createElement("div");
         roundDiv.className = "round";
+        // Add a class for visual distinction (e.g., round-1, round-2)
+        roundDiv.classList.add(`round-${round.id || index + 1}`);
 
         const title = document.createElement("div");
         title.className = "round-title";
