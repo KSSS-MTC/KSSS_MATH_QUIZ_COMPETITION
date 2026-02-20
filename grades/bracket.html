@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Math Quiz Bracket</title>
+  <link rel="stylesheet" href="../static/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="static/images/Kotusss_logo.png">
+</head>
+
+<body>
+  <header class="school-header">
+    <div class="header-content">
+      <div class="brand-wrap">
+        <div class="logo-container">
+          <img src="../static/images/Kotusss_logo.png" alt="KSSS Logo" class="school-logo"
+            onerror="console.warn('⚠️ Logo missing: Place Kotusss_logo.png in static/images/ folder'); this.parentElement.className='logo-placeholder';">
+        </div>
+        <p class="school-name">KOTU SENIOR SECONDARY SCHOOL</p>
+      </div>
+      <button id="theme-toggle" class="theme-toggle"
+        style="background:none; border:none; cursor:pointer; font-size:24px; padding:8px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
+        title="Toggle between dark and light theme" aria-label="Toggle between dark and light theme">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="back-nav">
+      <a href="../index.html" class="back-home-btn">← Back to Home</a>
+    </div>
+
+    <h1 id="page-title">Math Quiz Competition</h1>
+    <div id="bracket"></div>
+  </main>
+  <footer class="footer">
+    <p>© 2026 Kotu Senior Secondary School. All rights reserved.</p>
+  </footer>
+  <script type="module" src="../static/script.js?v=2.2.5"></script>
+</body>
+
+</html>
