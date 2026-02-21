@@ -100,7 +100,7 @@
             "location": "Maths Lab"
           },
           "teamA": {
-            "name": "Umar 1",
+            "name": "Naffisah 1",
             "points": null
           },
           "teamB": {
@@ -134,7 +134,7 @@
             "location": "Maths Lab"
           },
           "teamA": {
-            "name": "Naffisah 1",
+            "name": "Umar 1",
             "points": null
           },
           "teamB": {
@@ -232,6 +232,26 @@
         "admin": "Y-JAMMEH",
         "roundIndex": 1,
         "timestamp": "2026-02-19T15:02:39.776Z"
+      }
+    },
+    {
+      "action": "Team Swap",
+      "timestamp": "2026-02-21T11:47:22.260Z",
+      "admin": "Y-JAMMEH",
+      "details": {
+        "admin": "Y-JAMMEH",
+        "timestamp": "2026-02-21T11:47:22.259Z",
+        "round": "Round 1",
+        "teamA": {
+          "name": "Naffisah 1",
+          "match": 8,
+          "side": "A"
+        },
+        "teamB": {
+          "name": "Umar 1",
+          "match": 6,
+          "side": "A"
+        }
       }
     }
   ],
