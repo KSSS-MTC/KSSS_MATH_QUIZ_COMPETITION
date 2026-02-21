@@ -134,7 +134,7 @@
             "location": "Maths Lab"
           },
           "teamA": {
-            "name": "Aisha 1 / Roheyah",
+            "name": "Fatimah 2",
             "points": null
           },
           "teamB": {
@@ -151,7 +151,7 @@
             "location": "Maths Lab"
           },
           "teamA": {
-            "name": "Fatimah 2",
+            "name": "Aisha 1 / Roheyah",
             "points": null
           },
           "teamB": {
@@ -581,6 +581,26 @@
           "name": "Fatimah 2",
           "match": 5,
           "side": "B"
+        }
+      }
+    },
+    {
+      "action": "Team Swap",
+      "timestamp": "2026-02-21T08:19:01.840Z",
+      "admin": "Y-JAMMEH",
+      "details": {
+        "admin": "Y-JAMMEH",
+        "timestamp": "2026-02-21T08:19:01.840Z",
+        "round": "Round 1",
+        "teamA": {
+          "name": "Fatimah 2",
+          "match": 9,
+          "side": "A"
+        },
+        "teamB": {
+          "name": "Aisha 1 / Roheyah",
+          "match": 8,
+          "side": "A"
         }
       }
     }
