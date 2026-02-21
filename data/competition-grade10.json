@@ -84,10 +84,10 @@
           },
           "teamA": {
             "name": "Ali",
-            "points": null
+            "points": 1
           },
           "teamB": {
-            "name": "Fatimah 2",
+            "name": "Fatimah 1",
             "points": null
           },
           "winner": null
@@ -151,7 +151,7 @@
             "location": "Maths Lab"
           },
           "teamA": {
-            "name": "Fatimah 1",
+            "name": "Fatimah 2",
             "points": null
           },
           "teamB": {
@@ -560,6 +560,26 @@
         "teamB": {
           "name": "Aisha 2",
           "match": 3,
+          "side": "B"
+        }
+      }
+    },
+    {
+      "action": "Team Swap",
+      "timestamp": "2026-02-21T08:16:41.390Z",
+      "admin": "Y-JAMMEH",
+      "details": {
+        "admin": "Y-JAMMEH",
+        "timestamp": "2026-02-21T08:16:41.389Z",
+        "round": "Round 1",
+        "teamA": {
+          "name": "Fatimah 1",
+          "match": 9,
+          "side": "A"
+        },
+        "teamB": {
+          "name": "Fatimah 2",
+          "match": 5,
           "side": "B"
         }
       }
