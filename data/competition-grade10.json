@@ -32,7 +32,7 @@
             "location": "Maths Lab"
           },
           "teamA": {
-            "name": "Roheyah",
+            "name": "Ebrima",
             "points": null
           },
           "teamB": {
@@ -100,7 +100,7 @@
             "location": "Maths Lab"
           },
           "teamA": {
-            "name": "Ebrima",
+            "name": "Roheyah",
             "points": null
           },
           "teamB": {
@@ -640,6 +640,26 @@
         "teamB": {
           "name": "Ebrima",
           "match": 2,
+          "side": "A"
+        }
+      }
+    },
+    {
+      "action": "Team Swap",
+      "timestamp": "2026-02-21T08:28:14.663Z",
+      "admin": "Y-JAMMEH",
+      "details": {
+        "admin": "Y-JAMMEH",
+        "timestamp": "2026-02-21T08:28:14.663Z",
+        "round": "Round 1",
+        "teamA": {
+          "name": "Roheyah",
+          "match": 2,
+          "side": "A"
+        },
+        "teamB": {
+          "name": "Ebrima",
+          "match": 6,
           "side": "A"
         }
       }
