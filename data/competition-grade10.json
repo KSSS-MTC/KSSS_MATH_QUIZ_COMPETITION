@@ -101,13 +101,13 @@
           },
           "teamA": {
             "name": "Ebrima",
-            "points": null
+            "points": 20
           },
           "teamB": {
             "name": "Naffisah 2",
-            "points": null
+            "points": 0
           },
-          "winner": null
+          "winner": "Ebrima"
         },
         {
           "id": 7,
