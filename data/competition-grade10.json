@@ -88,9 +88,9 @@
           },
           "teamB": {
             "name": "Fatimah 2",
-            "points": null
+            "points": 12
           },
-          "winner": null
+          "winner": "Fatimah 2"
         },
         {
           "id": 6,
