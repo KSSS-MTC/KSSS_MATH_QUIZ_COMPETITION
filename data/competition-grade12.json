@@ -105,9 +105,9 @@
           },
           "teamB": {
             "name": "Aisha 1",
-            "points": 7
+            "points": null
           },
-          "winner": "Naffisah 1"
+          "winner": null
         },
         {
           "id": 7,
