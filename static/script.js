@@ -1,130 +1,150 @@
-let pageName = window.location.pathname.split("/").pop();
-let grade = pageName.replace(".html", "");
-// Use ../ to jump out of the 'grades' folder into the root where 'data' lives
-let jsonFile = `../data/competition-${grade}.json`;
+import { DATA_VERSION } from '../common/constants.js';
+import { initTheme, setupThemeToggle } from '../common/theme.js';
+import { parseScheduleDate, isPendingSchedule } from '../common/dateParser.js';
+import { showError, initGlobalErrorHandlers } from '../common/errorHandler.js';
+
+// Determine grade from URL
+const urlParams = new URLSearchParams(window.location.search);
+const grade = urlParams.get("grade") || "10";
+
+// Update page title
+const pageTitle = document.getElementById("page-title");
+if (pageTitle) {
+  pageTitle.textContent = `Grade ${grade} – Math Quiz Competition`;
+  document.title = `Grade ${grade} Math Quiz Bracket`;
+}
+
+// Theme setup
+initTheme();
+setupThemeToggle();
+
+const bracketContainer = document.getElementById("bracket");
+if (!bracketContainer) throw new Error("Bracket container not found");
+
+// Set up global error catching – any uncaught error will show here
+initGlobalErrorHandlers(bracketContainer);
+
+const jsonFile = `../data/competition-grade${grade}.json?v=${DATA_VERSION}`;
 
 fetch(jsonFile)
-  .then(res => res.json())
+  .then(res => {
+    if (!res.ok) throw new Error(`Failed to load data for Grade ${grade}`);
+    return res.json();
+  })
   .then(data => {
-    const bracket = document.getElementById("bracket");
+    try {
+      const rounds = Array.isArray(data?.rounds) ? data.rounds : [];
 
-    data.rounds.forEach(round => {
-      const roundDiv = document.createElement("div");
-      roundDiv.className = "round";
+      rounds.forEach((round, index) => {
+        const roundDiv = document.createElement("div");
+        roundDiv.className = "round";
+        // Add a class for visual distinction (e.g., round-1, round-2)
+        roundDiv.classList.add(`round-${round.id || index + 1}`);
 
-      const title = document.createElement("div");
-      title.className = "round-title";
-      title.textContent = round.name;
-      roundDiv.appendChild(title);
+        const title = document.createElement("div");
+        title.className = "round-title";
+        title.textContent = round?.name || "Unnamed Round";
+        roundDiv.appendChild(title);
 
-      // --- 🟢 NEW SORTING LOGIC STARTS HERE ---
-      // We sort the matches BEFORE creating the HTML elements
-      const sortedMatches = round.matches.sort((a, b) => {
-        // 1. Check if matches are "Pending" or "Panding"
-        const isPendingA = isMatchPending(a);
-        const isPendingB = isMatchPending(b);
+        const matchList = Array.isArray(round?.matches) ? [...round.matches] : [];
+        const sortedMatches = matchList.sort((a, b) => {
+          const pendingA = isMatchPending(a);
+          const pendingB = isMatchPending(b);
+          if (pendingA && !pendingB) return 1;
+          if (!pendingA && pendingB) return -1;
+          if (pendingA && pendingB) return 0;
+          const dateA = parseScheduleDate(a?.schedule);
+          const dateB = parseScheduleDate(b?.schedule);
+          return dateA - dateB;
+        });
 
-        // If A is pending and B is not, A goes to the bottom (return 1)
-        if (isPendingA && !isPendingB) return 1;
-        // If B is pending and A is not, B goes to the bottom (A stays top)
-        if (!isPendingA && isPendingB) return -1;
-        // If both are pending, keep them in their original order
-        if (isPendingA && isPendingB) return 0;
+        sortedMatches.forEach(match => {
+          const matchDiv = document.createElement("div");
+          matchDiv.className = "match";
 
-        // 2. If neither is pending, sort by Date (Soonest first)
-        const dateA = parseDate(a.schedule.date);
-        const dateB = parseDate(b.schedule.date);
+          const isBestLoser = match?.type === "best_loser";
 
-        return dateA - dateB;
-      });
-      // --- 🔴 END SORTING LOGIC ---
-
-      sortedMatches.forEach(match => {
-        const matchDiv = document.createElement("div");
-        matchDiv.className = "match";
-
-        // Schedule header
-        if (match.schedule) {
-          const scheduleDiv = document.createElement("div");
-          scheduleDiv.className = "match-schedule";
-
-          scheduleDiv.innerHTML = `
-            <div class="schedule-date">${match.schedule.date}</div>
-            <div class="schedule-time">${match.schedule.time}</div>
-            <div class="schedule-location">${match.schedule.location}</div>
-          `;
-
-          matchDiv.appendChild(scheduleDiv);
-        }
-
-        const teamA = createTeam(match.teamA);
-        const teamB = createTeam(match.teamB);
-
-        const vs = document.createElement("div");
-        vs.className = "vs";
-        vs.textContent = "VS";
-
-        if (match.teamA.points !== null && match.teamB.points !== null) {
-          teamA.querySelector(".points").style.display = "inline-block";
-          teamB.querySelector(".points").style.display = "inline-block";
-
-          if (match.teamA.points > match.teamB.points) {
-            teamA.classList.add("leading");
-          } else if (match.teamB.points > match.teamA.points) {
-            teamB.classList.add("leading");
+          // Add round badge for normal matches
+          if (!isBestLoser) {
+            const roundBadge = document.createElement("div");
+            roundBadge.className = "round-badge";
+            roundBadge.textContent = round?.name || `Round ${round.id || index + 1}`;
+            matchDiv.appendChild(roundBadge);
+          } else {
+            matchDiv.classList.add("best-loser-match");
+            const badge = document.createElement("div");
+            badge.className = "best-loser-badge";
+            badge.textContent = "🏆 BEST LOSER PLAYOFF";
+            matchDiv.appendChild(badge);
           }
-        }
 
-        if (match.winner === match.teamA.name) teamA.classList.add("winner");
-        if (match.winner === match.teamB.name) teamB.classList.add("winner");
+          if (match?.schedule) {
+            const scheduleDiv = document.createElement("div");
+            scheduleDiv.className = "match-schedule";
+            scheduleDiv.innerHTML = `
+              <div class="schedule-date">${match.schedule.date ?? "Pending"}</div>
+              <div class="schedule-time">${match.schedule.time ?? "TBD"}</div>
+              <div class="schedule-location">${match.schedule.location ?? "Maths Lab"}</div>
+            `;
+            matchDiv.appendChild(scheduleDiv);
+          }
 
-        // Wrap teams and VS inside a flex row
-        const matchTeamsDiv = document.createElement("div");
-        matchTeamsDiv.className = "match-teams";
-        matchTeamsDiv.appendChild(teamA);
-        matchTeamsDiv.appendChild(vs);
-        matchTeamsDiv.appendChild(teamB);
+          const teamA = createTeam(match?.teamA || {});
+          const teamB = createTeam(match?.teamB || {});
 
-        matchDiv.appendChild(matchTeamsDiv);
-        roundDiv.appendChild(matchDiv);
+          const vs = document.createElement("div");
+          vs.className = "vs";
+          vs.textContent = "VS";
+
+          const teamAData = match?.teamA || {};
+          const teamBData = match?.teamB || {};
+
+          if (teamAData.points != null && teamBData.points != null) {
+            teamA.querySelector(".points").style.display = "inline-block";
+            teamB.querySelector(".points").style.display = "inline-block";
+            if (teamAData.points > teamBData.points) teamA.classList.add("leading");
+            else if (teamBData.points > teamAData.points) teamB.classList.add("leading");
+          }
+
+          if (match?.winner === teamAData.name) teamA.classList.add("winner");
+          if (match?.winner === teamBData.name) teamB.classList.add("winner");
+
+          const matchTeamsDiv = document.createElement("div");
+          matchTeamsDiv.className = "match-teams";
+          matchTeamsDiv.appendChild(teamA);
+          matchTeamsDiv.appendChild(vs);
+          matchTeamsDiv.appendChild(teamB);
+          matchDiv.appendChild(matchTeamsDiv);
+          roundDiv.appendChild(matchDiv);
+        });
+
+        bracketContainer.appendChild(roundDiv);
       });
-
-      bracket.appendChild(roundDiv);
-    });
+    } catch (err) {
+      showError(bracketContainer, `Could not render bracket for Grade ${grade}.`, false);
+    }
+  })
+  .catch(err => {
+    showError(bracketContainer, err.message || `Failed to load data for Grade ${grade}.`, true);
   });
 
-// Helper function to create team HTML
 function createTeam(team) {
   const div = document.createElement("div");
   div.className = "team";
 
   const name = document.createElement("span");
   name.className = "team-name";
-  name.textContent = team.name;
+  name.textContent = team?.name || "TBD";
 
   const points = document.createElement("span");
   points.className = "points";
-  points.textContent = team.points !== null ? `${team.points} pts` : "";
+  points.textContent = team?.points != null ? `${team.points} pts` : "";
 
   div.appendChild(name);
   div.appendChild(points);
-
   return div;
 }
 
-// Helper to check if a match is pending/panding
 function isMatchPending(match) {
-    if (!match.schedule || !match.schedule.date) return true;
-    const d = match.schedule.date.toLowerCase();
-    const t = match.schedule.time.toLowerCase();
-    // Checks for "panding" (your spelling) or "pending"
-    return d.includes("panding") || d.includes("pending") || t.includes("panding") || t.includes("pending");
+  return isPendingSchedule(match?.schedule);
 }
-
-// Helper to parse "Wed, Feb 11" into a real Date object for sorting
-function parseDate(dateString) {
-    const currentYear = new Date().getFullYear();
-    // Adds current year to make it sortable, e.g. "Wed, Feb 11 2025"
-    return new Date(`${dateString} ${currentYear}`);
-}
-

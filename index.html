@@ -1,19 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSSS Math Quiz</title>
+    <title>KSSS Math Quiz Competition</title>
+    <meta property="og:title" content="KSSS Math Quiz Competition - Live Scores & Schedules" />
+    <meta property="og:description"
+        content="Follow the official live bracket and results for the Kotu Senior Secondary School Mathematics Department Quiz Competition. See who will be crowned champion!" />
+    <meta property="og:image"
+        content="https://ksss-mtc.github.io/KSSS_MATH_QUIZ_COMPETITION/static/images/quiz-preview.jpg" />
+    <meta property="og:image:type" content="image/jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ksss-mtc.github.io/KSSS_MATH_QUIZ_COMPETITION/" />
     <link rel="stylesheet" href="static/home.css">
+    <link rel="icon" type="image/png" href="static/images/Kotusss_logo.png">
 </head>
+
 <body>
 
     <header class="school-header">
         <div class="header-content">
-            <div class="logo-container">
-                <img src="logo.png" alt="KSSS Logo" class="school-logo" onerror="this.parentElement.className='logo-placeholder';">
+            <div class="brand-wrap">
+                <div class="logo-container">
+                    <img src="static/images/Kotusss_logo.png" alt="KSSS Logo" class="school-logo"
+                        onerror="console.warn('⚠️ Logo missing: Place Kotusss_logo.png in static/images/ folder'); this.parentElement.className='logo-placeholder';">
+                </div>
+                <p class="school-name">KOTU SENIOR SECONDARY SCHOOL</p>
             </div>
-            <p class="school-name">KOTU SENIOR SECONDARY SCHOOL</p>
+            <button id="theme-toggle" class="theme-toggle"
+                style="background:none; border:none; cursor:pointer; font-size:24px; padding:8px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
+                title="Toggle between dark and light theme" aria-label="Toggle between dark and light theme">
+                <span id="theme-icon">🌙</span>
+            </button>
         </div>
     </header>
 
@@ -25,9 +46,9 @@
     <nav class="tab-nav">
         <ul>
             <li><a href="index.html" class="active">HOME</a></li>
-            <li><a href="grades/grade10.html">GRADE 10</a></li>
-            <li><a href="grades/grade11.html">GRADE 11</a></li>
-            <li><a href="grades/grade12.html">GRADE 12</a></li>
+            <li><a href="grades/bracket.html?grade=10">GRADE 10</a></li>
+            <li><a href="grades/bracket.html?grade=11">GRADE 11</a></li>
+            <li><a href="grades/bracket.html?grade=12">GRADE 12</a></li>
         </ul>
     </nav>
 
@@ -38,9 +59,12 @@
                 <ul class="rules-list">
                     <li>Each class is invited to send <strong>ONLY TWO</strong> participants.</li>
                     <li>It is mandatory for all students to wear <strong>school uniforms</strong>.</li>
-                    <li><strong>No communication</strong> is allowed between participants and the audience. Failure to comply results in a <strong>5-point deduction</strong>.</li>
-                    <li>Participants are permitted to use <strong>ONLY simple calculators</strong> (Strictly NO FX/Scientific calculators).</li>
-                    <li>Participants must arrive at the School Hall by <strong>11:18 AM</strong> for a prompt 11:20 AM start.</li>
+                    <li><strong>No communication</strong> is allowed between participants and the audience. Failure to
+                        comply results in a <strong>5-point deduction</strong>.</li>
+                    <li>Participants are permitted to use <strong>ONLY simple calculators</strong> (Strictly NO
+                        FX/Scientific calculators).</li>
+                    <li>Participants must arrive at the School Hall by <strong>11:18 AM</strong> for a prompt 11:20 AM
+                        start.</li>
                 </ul>
             </div>
 
@@ -72,7 +96,12 @@
             </div>
         </section>
     </main>
+    <footer class="footer">
+        <p>© 2026 KSSS Maths and Tech Club (MTC). All rights reserved. | <a href="https://your-club-website.com"
+                target="_blank" rel="noopener">Official Website</a></p>
+    </footer>
 
-    <script src="static/home.js"></script>
+    <script type="module" src="static/home.js?v=2.2.5"></script>
 </body>
+
 </html>

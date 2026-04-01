@@ -1,0 +1,6 @@
+.vscode/
+.idea/
+doc/
+admin_OLD_files_folder/
+PROJECT_FILE_STRUCTURE.md
+generate_tree.py
